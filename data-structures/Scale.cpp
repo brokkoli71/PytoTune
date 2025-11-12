@@ -117,7 +117,7 @@ namespace p2t {
     Scale Scale::fromName(const std::string& name, float tuning) {
         // Also accept atonal scales, that dont need a root note
         const std::vector<std::string> atonalScales{
-        "chromatic", "whole-tone"
+        "chromatic", "whole-tone", "quarter-tone"
         };
 
         for (const std::string& atonalScale : atonalScales) {

@@ -41,8 +41,11 @@ static const std::vector<int> melodicMinSteps  = {0,2,3,5,7,9,11};
 // Chromatic scale (12-TET)
 static const std::vector<int> chromaticSteps   = {0,1,2,3,4,5,6,7,8,9,10,11};
 
-// Whole tone scale
+// Whole tone scale (6-TET)
 static const std::vector<int> wholeToneSteps   = {0,2,4,6,8,10};
+
+// Quarter tone scale (24-TET)
+static const std::vector<int> quarterToneSteps = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23};
 
 // Pentatonics
 static const std::vector<int> majorPentatonicSteps = {0,2,4,7,9};
@@ -90,7 +93,10 @@ const std::unordered_map<std::string, Mode> modes = {
     {"chromatic", {2.0f, EqualTemperamentUtils::semitoneRatios(chromaticSteps)}},
 
     // Whole-tone
-{"whole-tone", {2.0f, EqualTemperamentUtils::semitoneRatios(wholeToneSteps)}},
+    {"whole-tone", {2.0f, EqualTemperamentUtils::semitoneRatios(wholeToneSteps)}},
+
+    // Quarter-tone
+    {"quarter-tone", {2.0f, EqualTemperamentUtils::semitoneRatios(quarterToneSteps, 24)}},
 
     // Microtonal / EDO
     {"edo19", {2.0f, EqualTemperamentUtils::semitoneRatios(edo19Steps, 19)}},
