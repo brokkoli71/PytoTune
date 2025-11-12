@@ -1,0 +1,37 @@
+name: C++ CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup build tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake ninja-build
+
+    - name: Configure CMake
+      run: |
+        mkdir -p build
+        cd build
+        cmake -G Ninja ..
+
+    - name: Build
+      run: |
+        cd build
+        ninja
+
+    - name: Run GoogleTest tests
+      run: |
+        cd build
+        # Run all tests, with color output disabled (as in your log)
+        ./tests --gtest_color=no
