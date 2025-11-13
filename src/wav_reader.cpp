@@ -59,8 +59,6 @@ void WavReader::readFile(const std::string& path) {
             file.ignore(6);
 
             bitsPerSample = read<uint16_t>(file);
-            cout << "Audio Format: " << audioFormat << ", Channels: " << numChannels
-                 << ", Sample Rate: " << sampleRate << ", Bits per Sample: " << bitsPerSample << "\n";
             file.ignore(chunkSize - 16);
         } else if (std::strncmp(chunkId, "data", 4) == 0) {
             dataChunk.resize(chunkSize);
