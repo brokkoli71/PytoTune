@@ -13,7 +13,6 @@
 #include "ModeTemplates.h"
 
 namespace p2t {
-
     Scale::Scale(float baseNote, float repeatFactor, std::vector<float> notes) {
         validate(baseNote, repeatFactor, notes);
         this->baseNote = baseNote;
@@ -42,7 +41,6 @@ namespace p2t {
     }
 
 
-
     float Scale::getClosestPitchInScale(float pitch) const {
         // We are looking for a, where pitch = a * basePitch
         const float a = pitch / this->baseNote;
@@ -69,8 +67,12 @@ namespace p2t {
                 break;
         }
 
-        const float lowerNote = upperIndex == 0 ? (this->notes.back() / this->repeatFactor) : this->notes[upperIndex-1];
-        const float upperNote = upperIndex == this->notes.size() ? (this->notes[0] * this->repeatFactor) : this->notes[upperIndex];
+        const float lowerNote = upperIndex == 0
+                                    ? (this->notes.back() / this->repeatFactor)
+                                    : this->notes[upperIndex - 1];
+        const float upperNote = upperIndex == this->notes.size()
+                                    ? (this->notes[0] * this->repeatFactor)
+                                    : this->notes[upperIndex];
 
         // Now we know which note it lies between
         // To now decide which one the pitch is closest to, we will compare the logs, as the pitch scale is logarithmic
@@ -88,6 +90,7 @@ namespace p2t {
     float Scale::getBaseNote() const {
         return baseNote;
     }
+
     void Scale::setBaseNote(float newBaseNote) {
         validate(newBaseNote, this->repeatFactor, this->notes);
         this->baseNote = newBaseNote;
@@ -96,31 +99,29 @@ namespace p2t {
     float Scale::getRepeatFactor() const {
         return repeatFactor;
     }
+
     void Scale::setRepeatFactor(float newRepeatFactor) {
         validate(this->baseNote, newRepeatFactor, this->notes);
         this->repeatFactor = newRepeatFactor;
     }
 
-    const std::vector<float>& Scale::getNotes() const {
+    const std::vector<float> &Scale::getNotes() const {
         return notes;
     }
+
     void Scale::setNotes(std::vector<float> newNotes) {
         validate(this->baseNote, this->repeatFactor, newNotes);
         this->notes = std::move(newNotes);
     }
 
-    // Alternate constructors
-
-    // Name is something like "Ab major", "C# pentatonic minor"
-    // Atonal scales like "chromatic" or "whole-tone" are also accepted
-    // Tuning is the tuning of a4, normally around 440
-    Scale Scale::fromName(const std::string& name, float tuning) {
+    // --------------- Alternate Constructors ----------------
+    Scale Scale::fromName(const std::string &name, float tuning) {
         // Also accept atonal scales, that dont need a root note
         const std::vector<std::string> atonalScales{
-        "chromatic", "whole-tone", "quarter-tone"
+            "chromatic", "whole-tone", "quarter-tone"
         };
 
-        for (const std::string& atonalScale : atonalScales) {
+        for (const std::string &atonalScale: atonalScales) {
             if (name == atonalScale)
                 return Scale::fromModeName(name, tuning);
         }
@@ -143,8 +144,8 @@ namespace p2t {
         static const std::unordered_map<std::string, int> noteSemitones = {
             {"Cb", 2}, {"C", 3}, {"C#", 4},
             {"Db", 4}, {"D", 5}, {"D#", 6},
-            {"Eb", 6},{"E", 7}, {"E#", 8},
-            {"Fb", 7},{"F", 8}, {"F#", 9},
+            {"Eb", 6}, {"E", 7}, {"E#", 8},
+            {"Fb", 7}, {"F", 8}, {"F#", 9},
             {"Gb", 9}, {"G", 10}, {"G#", 11},
             {"Ab", 11}, {"A", 0}, {"A#", 1},
             {"Bb", 1}, {"B", 2}, {"B#", 3}
@@ -153,10 +154,11 @@ namespace p2t {
         if (noteSemitones.count(note) == 0)
             throw std::invalid_argument("Invalid root note. It mus have the format: [A|B|C|D|E|F|G](#|b)?");
 
-        return Scale::fromModeName(modeName, tuning * std::pow(2.0f, static_cast<float>(noteSemitones.at(note)) / 12.0f));
+        return Scale::fromModeName(
+            modeName, tuning * std::pow(2.0f, static_cast<float>(noteSemitones.at(note)) / 12.0f));
     }
 
-    Scale Scale::fromModeName(const std::string& modeName, float baseNote) {
+    Scale Scale::fromModeName(const std::string &modeName, float baseNote) {
         if (modes.count(modeName) == 0)
             throw std::invalid_argument("Unknown mode name '" + modeName + "'");
 
@@ -166,6 +168,4 @@ namespace p2t {
     Scale Scale::fromMode(const Mode &mode, float baseNote) {
         return {baseNote, mode.repeatFactor, mode.notes};
     }
-
-
-}  // namespace p2t
+} // namespace p2t
