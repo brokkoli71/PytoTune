@@ -58,7 +58,7 @@ void WavReader::readFile(const std::string& path) {
                 throw std::runtime_error("Unsupported WAV format. Only PCM and float are supported.");
             numChannels = read<uint16_t>(file);
             sampleRate = read<uint32_t>(file);
-            //ignore byte rate and block align as can be computed from other values
+            // Ignore byte rate and block align as can be computed from other values.
             file.ignore(6);
 
             bitsPerSample = read<uint16_t>(file);
