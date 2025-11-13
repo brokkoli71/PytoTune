@@ -13,6 +13,9 @@ namespace {
     T read(std::ifstream& file) {
         T value;
         file.read(reinterpret_cast<char*>(&value), sizeof(T));
+        if (file.gcount() != sizeof(T) || file.fail()) {
+            throw std::runtime_error("Failed to read required number of bytes from file");
+        }
         return value;
     }
 }
