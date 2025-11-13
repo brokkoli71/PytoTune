@@ -2,8 +2,8 @@
 // Created by Moritz Seppelt on 12.11.25.
 //
 
-#ifndef PYTOTUNE_MODETEMPLATES_H
-#define PYTOTUNE_MODETEMPLATES_H
+#ifndef PYTOTUNE_MODE_H
+#define PYTOTUNE_MODE_H
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -85,4 +85,4 @@ namespace p2t {
     };
 } //p2t
 
-#endif //PYTOTUNE_MODETEMPLATES_H
+#endif //PYTOTUNE_MODE_H

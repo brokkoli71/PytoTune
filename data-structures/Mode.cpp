@@ -2,7 +2,7 @@
 // Created by Moritz Seppelt on 12.11.25.
 //
 
-#include "ModeTemplates.h"
+#include "Mode.h"
 #include <cmath>
 #include <algorithm>
 
