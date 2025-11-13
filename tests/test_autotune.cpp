@@ -6,7 +6,7 @@
 
 #include <string>
 
-auto TEST_DATA_DIR = "../tests/data";
+constexpr const char* TEST_DATA_DIR = "../tests/data";
 
 TEST(WavReaderTest, DoesNotThrowOnValidFile) {
   std::string testFile = std::string(TEST_DATA_DIR) + "/pcm.wav";
