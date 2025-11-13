@@ -17,14 +17,14 @@ namespace p2t {
     struct Mode {
         /**
          * The factor at which the scale repeats. Most likely it is 2, representing an octave.
-         * It will always be greater than 1.
+         * It should always be greater than 1.
          */
         float repeatFactor;
 
         /**
          * The pitch proportions of the notes in the scale to the base note.
-         * All values will always be between 1 and repeatFactor.
-         * The vector is always sorted strictly increasingly.
+         * All values should always be between 1 and repeatFactor.
+         * The vector should always be sorted strictly increasingly.
          */
         std::vector<float> notes;
     };

@@ -8,7 +8,7 @@
 #define DEFAULT_A4 442
 #include <vector>
 
-#include "ModeTemplates.h"
+#include "Mode.h"
 
 namespace p2t {
     /**

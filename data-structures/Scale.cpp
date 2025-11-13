@@ -10,8 +10,6 @@
 
 #include <unordered_map>
 
-#include "ModeTemplates.h"
-
 namespace p2t {
     Scale::Scale(float baseNote, float repeatFactor, std::vector<float> notes) {
         validate(baseNote, repeatFactor, notes);
