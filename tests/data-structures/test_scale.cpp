@@ -90,7 +90,7 @@ TEST(ScaleTest, SetNotesRejectsInvalidRange) {
 // --------------------------------------------------------------
 
 TEST(ScaleTest, ClosestPitchSimple) {
-    p2t::Scale s(440.0f, 2.0f, {1.0f, 1.25f, 1.5f, 1.75f, 2.0f});
+    p2t::Scale s(440.0f, 2.0f, {1.0f, 1.25f, 1.5f, 1.75f});
 
     // This pitch is closer to 1.5 × baseNote than to 1.25 or 1.75
     float pitch = 440.0f * 1.52f;
