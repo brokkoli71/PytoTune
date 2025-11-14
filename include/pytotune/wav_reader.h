@@ -9,20 +9,24 @@
 #include <string>
 #include <cstdint>
 
-struct WavData {
-  uint32_t sampleRate = 0;
-  uint16_t numChannels = 0;
-  std::vector<float> samples;  // interleaved if stereo
-};
+namespace p2t {
+  struct WavData {
+    uint32_t sampleRate = 0;
+    uint16_t numChannels = 0;
+    std::vector<float> samples; // interleaved if stereo
+  };
 
-class WavReader {
-public:
-  explicit WavReader(const std::string& path);
-  const WavData& data() const { return wavData_; }
+  class WavReader {
+  public:
+    explicit WavReader(const std::string &path);
 
-private:
-  void readFile(const std::string& path);
-  WavData wavData_;
-};
+    const WavData &data() const { return wavData_; }
+
+  private:
+    void readFile(const std::string &path);
+
+    WavData wavData_;
+  };
+}
 
 #endif // PYTOTUNE_WAVREADER_H
