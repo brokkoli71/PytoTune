@@ -25,4 +25,4 @@ private:
   WavData wavData_;
 };
 
-#endif // PYTOTUNE_AUTOTUNE_H
+#endif // PYTOTUNE_WAVREADER_H
