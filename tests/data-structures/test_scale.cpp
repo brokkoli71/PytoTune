@@ -86,7 +86,7 @@ TEST(ScaleTest, SetNotesRejectsInvalidRange) {
 
 
 // --------------------------------------------------------------
-// getClosestPitchInSclae
+// getClosestPitchInScale
 // --------------------------------------------------------------
 
 TEST(ScaleTest, ClosestPitchSimple) {
