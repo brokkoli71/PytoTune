@@ -2,8 +2,8 @@
 // Created by hannes on 12/11/2025.
 //
 
-#ifndef PYTOTUNE_AUTOTUNE_H
-#define PYTOTUNE_AUTOTUNE_H
+#ifndef PYTOTUNE_WAVREADER_H
+#define PYTOTUNE_WAVREADER_H
 #include <vector>
 
 #include <string>
