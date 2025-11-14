@@ -7,6 +7,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <algorithm>
+#include <ranges>
 
 namespace p2t {
     uint16_t MidiFile::readUint16(std::ifstream &f) {
@@ -39,7 +40,7 @@ namespace p2t {
         uint32_t length = readUint32(f);
         if (length < 6) throw std::runtime_error("Invalid header length");
 
-        MidiHeader header;
+        MidiHeader header{};
         header.format = readUint16(f);
         header.numTracks = readUint16(f);
         header.division = readUint16(f);
@@ -49,7 +50,8 @@ namespace p2t {
     }
 
     // ---------------------- Track parsing ----------------------
-    std::vector<MidiFile::MidiEvent> MidiFile::readTrackEvents(std::ifstream &f, const MidiHeader &header) {
+    std::vector<MidiFile::MidiEvent> MidiFile::readTrackEvents(std::ifstream &f, const MidiHeader &header,
+                                                               const u_int16_t track) {
         char id[4];
         f.read(id, 4);
         if (std::string(id, 4) != "MTrk") throw std::runtime_error("Missing track");
@@ -79,13 +81,13 @@ namespace p2t {
                 uint8_t note, vel;
                 f.read(reinterpret_cast<char *>(&note), 1);
                 f.read(reinterpret_cast<char *>(&vel), 1);
-                events.push_back({absTicks, vel > 0 ? EventType::NoteOn : EventType::NoteOff, note, vel, 0});
+                events.push_back({absTicks, vel > 0 ? EventType::NoteOn : EventType::NoteOff, note, vel, 0, track});
             } else if ((statusByte & 0xF0) == 0x80) {
                 // Note Off
                 uint8_t note, vel;
                 f.read(reinterpret_cast<char *>(&note), 1);
                 f.read(reinterpret_cast<char *>(&vel), 1);
-                events.push_back({absTicks, EventType::NoteOff, note, vel, 0});
+                events.push_back({absTicks, EventType::NoteOff, note, vel, 0, track});
             } else if (statusByte == 0xFF) {
                 // Meta
                 uint8_t type;
@@ -96,7 +98,7 @@ namespace p2t {
                     uint8_t t[3];
                     f.read(reinterpret_cast<char *>(t), 3);
                     uint32_t tempo = (t[0] << 16) | (t[1] << 8) | t[2];
-                    events.push_back({absTicks, EventType::Tempo, 0, 0, tempo});
+                    events.push_back({absTicks, EventType::Tempo, 0, 0, tempo, track});
                 } else {
                     f.seekg(len, std::ios::cur);
                 }
@@ -125,17 +127,29 @@ namespace p2t {
         // --- PASS 1: Read all tracks into absolute-tick events ---
         std::vector<MidiEvent> allEvents;
         for (int i = 0; i < header.numTracks; i++) {
-            auto trackEvents = readTrackEvents(f, header);
+            auto trackEvents = readTrackEvents(f, header, i);
             allEvents.insert(allEvents.end(), trackEvents.begin(), trackEvents.end());
         }
 
         // Sort the events
         std::sort(allEvents.begin(), allEvents.end(), [](const MidiEvent &a, const MidiEvent &b) {
-            return a.absTicks < b.absTicks;
+            if (a.absTicks != b.absTicks)
+                return a.absTicks < b.absTicks;
+
+            // For same absTicks, NoteOff comes before NoteOn
+            if ((a.type == EventType::NoteOff) && (b.type == EventType::NoteOn))
+                return true;
+            if ((a.type == EventType::NoteOn) && (b.type == EventType::NoteOff))
+                return false;
+
+            // fallback to original order for other cases
+            return false;
         });
 
         // --- PASS 2: Sort by absTicks and convert to seconds ---
-        std::unordered_map<uint8_t, float> activeNotes;
+        // activeNotes[track][noteValue] = noteOnEventTime
+        std::unordered_map<uint16_t, std::unordered_map<uint8_t, float> > activeNotes;
+
         double tempo = 500000.0; // default 120 BPM
         uint32_t lastTick = 0;
         double currentTime = 0.0;
@@ -149,29 +163,45 @@ namespace p2t {
             if (e.type == EventType::Tempo) {
                 tempo = e.tempo;
             } else if (e.type == EventType::NoteOn) {
-                activeNotes[e.note] = currentTime;
+                activeNotes[e.track][e.note] = static_cast<float>(currentTime);
             } else if (e.type == EventType::NoteOff) {
-                if (activeNotes.count(e.note)) {
-                    noteEvents.push_back({e.note, activeNotes[e.note], static_cast<float>(currentTime)});
-                    activeNotes.erase(e.note);
+                if (activeNotes[e.track].contains(e.note) && activeNotes[e.track][e.note] < currentTime) {
+                    noteEvents.push_back({e.note, activeNotes[e.track][e.note], static_cast<float>(currentTime)});
+                    activeNotes[e.track].erase(e.note);
                 }
             }
         }
 
+        lengthSeconds = static_cast<float>(currentTime);
+
         // Remaining notes still "on"
-        for (auto &p: activeNotes) {
-            noteEvents.push_back({p.first, p.second, static_cast<float>(currentTime)});
+        for (auto &val: activeNotes | std::views::values) {
+            for (auto &notesMap = val; auto &[note, value]: notesMap) {
+                noteEvents.push_back({note, value, lengthSeconds});
+            }
         }
 
-        lengthSeconds = static_cast<float>(currentTime);
+        // Sort them by the start
+        std::sort(noteEvents.begin(), noteEvents.end(),
+                  [](const NoteEvent &a, const NoteEvent &b) {
+                      return a.start < b.start; // compare startTime
+                  });
     }
 
     // ---------------------- Query ----------------------
-    std::vector<int> MidiFile::getActiveNotesAt(float time) const {
+    std::vector<int> MidiFile::getActiveNotesAt(const float time) const {
+        if (time > lengthSeconds || time < 0) return {};
+
         std::vector<int> result;
-        for (const auto &n: noteEvents)
+        for (const auto &n: noteEvents) {
             if (n.start <= time && n.end > time)
                 result.push_back(n.note);
+
+            // Exit early because it is sorted by the start time
+            if (n.start > time)
+                return result;
+        }
+
         return result;
     }
 } // p2t

@@ -44,6 +44,7 @@ namespace p2t {
             uint8_t note; // for NoteOn/Off
             uint8_t velocity; // for NoteOn/Off
             uint32_t tempo; // for Tempo (µs per quarter note)
+            uint16_t track; // which track this event belongs to
         };
 
         std::vector<NoteEvent> noteEvents;
@@ -58,7 +59,7 @@ namespace p2t {
 
         MidiHeader readHeader(std::ifstream &f);
 
-        std::vector<MidiEvent> readTrackEvents(std::ifstream &f, const MidiHeader &header);
+        std::vector<MidiEvent> readTrackEvents(std::ifstream &f, const MidiHeader &header, u_int16_t track);
     };
 } // p2t
 
