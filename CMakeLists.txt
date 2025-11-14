@@ -26,7 +26,8 @@ target_include_directories(pytotune_core PUBLIC
 )
 
 # Add the test executable
-add_executable(tests tests/test_wav_reader.cpp)
+add_executable(tests tests/test_wav_reader.cpp
+        tests/test_utils.h)
 target_link_libraries(tests PRIVATE pytotune_core gtest_main)
 
 enable_testing()
