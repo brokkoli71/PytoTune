@@ -116,7 +116,7 @@ TEST(ScaleTest, ClosestPitchCanRoundToNextOcatave) {
     EXPECT_NEAR(s.getClosestPitchInScale(pitch), expected, 1e-5f);
 }
 
-TEST(ScaleTest, ClosestPitchCanRoundToLowerOcatave) {
+TEST(ScaleTest, ClosestPitchCanRoundToLowerOctave) {
     // Note: This only happens when the root note is not part of the scale.
     // Judge yourself whether this is practical, but the implementation allows it
     p2t::Scale s(440.0f, 2.0f, {1.25f, 1.5f, 1.75f});
