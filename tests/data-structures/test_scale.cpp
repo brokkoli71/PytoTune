@@ -5,7 +5,7 @@
 
 #include <gtest/gtest.h>
 
-#include "pytotune/data-structures/Scale.h"
+#include "pytotune/data-structures/scale.h"
 
 
 // --------------------------------------------------------------

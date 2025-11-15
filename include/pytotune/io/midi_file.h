@@ -28,8 +28,6 @@ struct NoteEvent {
 namespace p2t {
     class MidiFile {
     public:
-        MidiFile() = default;
-
         /// Load and parse a MIDI file into a flattened list of NoteEvents.
         ///
         /// Behaviour notes:
@@ -37,7 +35,7 @@ namespace p2t {
         ///   * Tempo changes apply globally—no per-track tempo handling exists.
         ///   * Track numbers from the source file are read but ultimately ignored
         ///     once noteEvents are created.
-        void load(const std::string &filename);
+        static MidiFile load(const std::string &filename);
 
         /// Returns all notes active at the given time (seconds).
         ///
@@ -49,6 +47,8 @@ namespace p2t {
         float getLength() const { return lengthSeconds; }
 
     private:
+        MidiFile() = default;
+
         struct MidiHeader {
             uint16_t format;
             uint16_t numTracks;
@@ -80,13 +80,13 @@ namespace p2t {
 
         static uint32_t readVLQ(std::ifstream &f);
 
-        MidiHeader readHeader(std::ifstream &f);
+        static MidiHeader readHeader(std::ifstream &f);
 
         /// Parse all events in a single MIDI track.
         /// Track index is provided so events can be tagged before merging.
-        std::vector<MidiEvent> readTrackEvents(std::ifstream &f,
-                                               const MidiHeader &header,
-                                               uint16_t track);
+        static std::vector<MidiEvent> readTrackEvents(std::ifstream &f,
+                                                      const MidiHeader &header,
+                                                      uint16_t track);
     };
 } // p2t
 

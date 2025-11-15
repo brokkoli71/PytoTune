@@ -2,7 +2,7 @@
 // Created by Moritz Seppelt on 13.11.25.
 //
 
-#include "MidiFile.h"
+#include "pytotune/io/midi_file.h"
 
 #include <fstream>
 #include <stdexcept>
@@ -117,8 +117,7 @@ namespace p2t {
 
 
     // ---------------------- Load MIDI ----------------------
-    void MidiFile::load(const std::string &filename) {
-        noteEvents.clear();
+    MidiFile MidiFile::load(const std::string &filename) {
         std::ifstream f(filename, std::ios::binary);
         if (!f) throw std::runtime_error("Failed to open file");
 
@@ -150,6 +149,9 @@ namespace p2t {
         // activeNotes[track][noteValue] = noteOnEventTime
         std::unordered_map<uint16_t, std::unordered_map<uint8_t, float> > activeNotes;
 
+        std::vector<NoteEvent> noteEvents;
+        noteEvents.reserve(allEvents.size() / 2);
+
         double tempo = 500000.0; // default 120 BPM
         uint32_t lastTick = 0;
         double currentTime = 0.0;
@@ -172,7 +174,7 @@ namespace p2t {
             }
         }
 
-        lengthSeconds = static_cast<float>(currentTime);
+        float lengthSeconds = static_cast<float>(currentTime);
 
         // Remaining notes still "on"
         for (auto &val: activeNotes | std::views::values) {
@@ -186,6 +188,11 @@ namespace p2t {
                   [](const NoteEvent &a, const NoteEvent &b) {
                       return a.start < b.start; // compare startTime
                   });
+        MidiFile result;
+        result.noteEvents = noteEvents;
+        result.lengthSeconds = lengthSeconds;
+
+        return result;
     }
 
     // ---------------------- Query ----------------------

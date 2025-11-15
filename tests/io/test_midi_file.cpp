@@ -7,16 +7,15 @@
 #include <string>
 #include <algorithm>
 
-#include "test_utils.h"
-#include "../midi-reader/MidiFile.h"
+#include "../test_utils.h"
+#include "pytotune/io/midi_file.h"
 
 
 TEST(MidiReaderTest, CanReadValidFile) {
     std::string testFile = std::string(TEST_DATA_DIR) + "/test.mid";
 
     EXPECT_NO_THROW({
-        p2t::MidiFile file;
-        file.load(testFile);
+        p2t::MidiFile file = p2t::MidiFile::load(testFile);
         EXPECT_NEAR(file.getLength(), 30, 0.001);
         });
 }
@@ -25,8 +24,7 @@ TEST(MidiReaderTest, ReadsNotesCorrectly) {
     std::string testFile = std::string(TEST_DATA_DIR) + "/test.mid";
 
     EXPECT_NO_THROW({
-        p2t::MidiFile file;
-        file.load(testFile);
+        p2t::MidiFile file = p2t::MidiFile::load(testFile);
 
         // Test single notes
         // First Bar, BPM = 60, Cmaj7 chord
@@ -97,8 +95,7 @@ TEST(MidiReaderTest, ReadOutOfRange) {
     std::string testFile = std::string(TEST_DATA_DIR) + "/test.mid";
 
     EXPECT_NO_THROW({
-        p2t::MidiFile file;
-        file.load(testFile);
+        p2t::MidiFile file = p2t::MidiFile::load(testFile);
 
         EXPECT_TRUE(file.getActiveNotesAt(-1).empty());
         EXPECT_TRUE(file.getActiveNotesAt(file.getLength() + 1).empty());

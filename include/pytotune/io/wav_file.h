@@ -16,13 +16,15 @@ namespace p2t {
     std::vector<float> samples; // interleaved if stereo
   };
 
-  class WavReader {
+  class WavFile {
   public:
-    explicit WavReader(const std::string &path);
-
     const WavData &data() const { return wavData_; }
 
+    static WavFile load(const std::string &path);
+
   private:
+    WavFile() = default;
+
     void readFile(const std::string &path);
 
     WavData wavData_;

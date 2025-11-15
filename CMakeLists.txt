@@ -18,10 +18,10 @@ FetchContent_MakeAvailable(googletest)
 
 # Add the library (core DSP logic)
 add_library(pytotune_core
-        src/wav_reader.cpp
+        src/io/wav_file.cpp
         src/data-structures/Mode.cpp
         src/data-structures/Scale.cpp
-        midi-reader/MidiFile.cpp
+        src/io/midi_file.cpp
 )
 
 target_include_directories(pytotune_core PUBLIC
@@ -29,9 +29,9 @@ target_include_directories(pytotune_core PUBLIC
 )
 
 # Add the test executable
-add_executable(tests tests/test_wav_reader.cpp
+add_executable(tests tests/io/test_wav_file.cpp
         tests/test_utils.h
-        tests/test_midi_reader.cpp
+        tests/io/test_midi_file.cpp
         tests/data-structures/test_scale.cpp)
 target_link_libraries(tests PRIVATE pytotune_core gtest_main)
 

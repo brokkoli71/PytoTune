@@ -2,7 +2,7 @@
 // Created by Moritz Seppelt on 12.11.25.
 //
 
-#include "pytotune/data-structures/Mode.h"
+#include "pytotune/data-structures/mode.h"
 #include <cmath>
 #include <algorithm>
 
