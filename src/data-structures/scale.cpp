@@ -6,7 +6,7 @@
 #include <cmath>
 #include <stdexcept>
 
-#include "Scale.h"
+#include "pytotune/data-structures/scale.h"
 
 #include <unordered_map>
 

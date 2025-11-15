@@ -1,19 +1,19 @@
 //
 // Created by hannes on 12/11/2025.
 //
-#include "pytotune/wav_reader.h"
+#include "../../include/pytotune/io/wav_file.h"
 #include <gtest/gtest.h>
 
 #include <string>
 
-#include "test_utils.h"
+#include "../test_utils.h"
 
 
-TEST(WavReaderTest, DoesNotThrowOnValidFile) {
+TEST(WavFileTest, DoesNotThrowOnValidFile) {
     std::string testFile = std::string(TEST_DATA_DIR) + "/pcm.wav";
 
     EXPECT_NO_THROW({
-        p2t::WavReader reader(testFile);
+        p2t::WavFile reader = p2t::WavFile::load(testFile);
         const auto& data = reader.data();
 
         EXPECT_GT(data.sampleRate, 0);
@@ -21,10 +21,10 @@ TEST(WavReaderTest, DoesNotThrowOnValidFile) {
         });
 }
 
-TEST(WavReaderTest, ThrowsOnInvalidFile) {
+TEST(WavFileTest, ThrowsOnInvalidFile) {
     std::string testFile = std::string(TEST_DATA_DIR) + "/invalid.wav";
 
     EXPECT_THROW({
-                 p2t::WavReader reader(testFile);
+                 p2t::WavFile::load(testFile);
                  }, std::runtime_error);
 }
