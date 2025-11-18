@@ -19,8 +19,8 @@ FetchContent_MakeAvailable(googletest)
 # Add the library (core DSP logic)
 add_library(pytotune_core
         src/io/wav_file.cpp
-        src/data-structures/Mode.cpp
-        src/data-structures/Scale.cpp
+        src/data-structures/mode.cpp
+        src/data-structures/scale.cpp
         src/io/midi_file.cpp
 )
 
