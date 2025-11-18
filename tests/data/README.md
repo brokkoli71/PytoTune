@@ -38,4 +38,4 @@ Here one can find teh naming conventions for the more complicated names. In Gene
   `44100Hz` and the audio format is `1`
 - `voice-majorscale_fstart220_fend440_cd6_tail_pause.wav` is a synthesized voiced singing a major scale from A3 (220Hz)
   to
-  A4 (440Hz) with some pause in between. This takes in 6s and a reverb tail is included.
+  A4 (440Hz) with some pause in between. This takes 6s and a reverb tail is included.
