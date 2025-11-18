@@ -17,7 +17,7 @@ Here one can find teh naming conventions for the more complicated names. In Gene
 - `<sound>-raise` basic continuous raise played by `<sound>`, starting at `fstart` until `fend`
 - `piano` one (synthesized) piano tone
 - `strings` one (synthesized) strings tone
-- `voice` one (synthesized) void tone
+- `voice` one (synthesized) voice tone
 - `<sound>-majorscale` A major scale played by `<sound>`, starting at `fstart` until `fend`
 
 ### Possible Attributes
