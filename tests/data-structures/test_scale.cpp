@@ -107,7 +107,7 @@ TEST(ScaleTest, ClosestPitchInDifferentOctave) {
     EXPECT_NEAR(s.getClosestPitchInScale(pitch), expected, 1e-5f);
 }
 
-TEST(ScaleTest, ClosestPitchCanRoundToNextOcatave) {
+TEST(ScaleTest, ClosestPitchCanRoundToNextOctave) {
     p2t::Scale s(440.0f, 2.0f, {1.0f, 1.25f, 1.5f, 1.75f});
 
     // Pitch outside the base octave
