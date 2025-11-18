@@ -1,4 +1,4 @@
-#include "pytotune/wav_reader.h"
+#include "../../include/pytotune/io/wav_file.h"
 #include <algorithm>
 #include <cstring>
 #include <fstream>
@@ -20,11 +20,13 @@ namespace {
 }
 
 namespace p2t {
-    WavReader::WavReader(const std::string &path) {
-        readFile(path);
+    WavFile WavFile::load(const std::string &path) {
+        WavFile result;
+        result.readFile(path);
+        return result;
     }
 
-    void WavReader::readFile(const std::string &path) {
+    void WavFile::readFile(const std::string &path) {
         std::ifstream file(path, std::ios::binary);
         if (!file) throw std::runtime_error("Cannot open file: " + path);
 

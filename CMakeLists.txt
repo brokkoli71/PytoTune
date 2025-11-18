@@ -4,7 +4,7 @@ project(PytoTune LANGUAGES CXX)
 # Compiler settings
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -fopenmp")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 # GoogleTest
 include(FetchContent)
@@ -18,7 +18,10 @@ FetchContent_MakeAvailable(googletest)
 
 # Add the library (core DSP logic)
 add_library(pytotune_core
-        src/wav_reader.cpp
+        src/io/wav_file.cpp
+        src/data-structures/mode.cpp
+        src/data-structures/scale.cpp
+        src/io/midi_file.cpp
 )
 
 target_include_directories(pytotune_core PUBLIC
@@ -26,8 +29,10 @@ target_include_directories(pytotune_core PUBLIC
 )
 
 # Add the test executable
-add_executable(tests tests/test_wav_reader.cpp
-        tests/test_utils.h)
+add_executable(tests tests/io/test_wav_file.cpp
+        tests/test_utils.h
+        tests/io/test_midi_file.cpp
+        tests/data-structures/test_scale.cpp)
 target_link_libraries(tests PRIVATE pytotune_core gtest_main)
 
 enable_testing()
