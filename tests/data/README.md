@@ -28,7 +28,7 @@ Here one can find teh naming conventions for the more complicated names. In Gene
 - `i` intensity in percent, e.g `i80` sets the maximum pressure level to be `0.8`
 - `sr` sample rate in Hz
 - `af` audio format of the wave file. Only `af1` and `af3` are supported.
-- `cd` content duration. This is the duration of the audio excluding the tail
+- `cd` content duration in seconds. This is the duration of the audio excluding the tail
 - `tail` a flag to signal that some (reverb) tail is included
 - `pause` a flag to signal that a pause is included
 
