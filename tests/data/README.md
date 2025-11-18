@@ -5,7 +5,7 @@ These files should be minimal in size.
 
 ## Naming
 
-Here one can find teh naming conventions for the more complicated names. In general it has the following format:
+Here one can find the naming conventions for the more complicated names. In general it has the following format:
 
 `<type_of_sound>(_<attribute_name><attribute_value>?)*.wav`
 
