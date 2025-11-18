@@ -36,5 +36,6 @@ Here one can find teh naming conventions for the more complicated names. In Gene
 
 - `sin_f440_i80_sr44100_af1.wav` is pure sine wave at `440Hz` with maximal pressure level `0.8`. The sample rate is
   `44100Hz` and the audio format is `1`
-- `voice-majorscale_fstart220_fend440_cd6_tail_pause` is a synthesized voiced singing a major scale from A3 (220Hz) to
+- `voice-majorscale_fstart220_fend440_cd6_tail_pause.wav` is a synthesized voiced singing a major scale from A3 (220Hz)
+  to
   A4 (440Hz) with some pause in between. This takes in 6s and a reverb tail is included.
