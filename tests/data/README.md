@@ -1,7 +1,7 @@
 # Test Data
 
 This directory contains super simple audio files, that are required for the unit tests.
-This files should be minimal in size.
+These files should be minimal in size.
 
 ## Naming
 
