@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <gtest/gtest.h>
 
 
 constexpr const char *TEST_DATA_DIR = "../tests/data";

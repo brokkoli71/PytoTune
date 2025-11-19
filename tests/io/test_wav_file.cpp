@@ -1,6 +1,3 @@
-//
-// Created by hannes on 12/11/2025.
-//
 #include "../../include/pytotune/io/wav_file.h"
 #include <gtest/gtest.h>
 
