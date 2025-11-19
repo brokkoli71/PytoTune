@@ -12,4 +12,4 @@ TODO
 ## Pitch detection
 possible improvement of YIN:
 - sliding window for cumulative mean normalized difference function (O(n) instead of O(n * tau_max))
-- 
+- might remove refinement via quadratic interpolation
