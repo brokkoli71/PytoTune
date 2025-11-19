@@ -11,7 +11,7 @@
 
 namespace p2t {
   struct WavData {
-    uint32_t sampleRate = 0;
+    uint32_t sampleRate = 0; // in Hz
     uint16_t numChannels = 0;
     std::vector<float> samples; // interleaved if stereo
   };
