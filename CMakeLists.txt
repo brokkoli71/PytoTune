@@ -22,6 +22,10 @@ add_library(pytotune_core
         src/data-structures/mode.cpp
         src/data-structures/scale.cpp
         src/io/midi_file.cpp
+        src/algorithms/fft.cpp
+        include/pytotune/algorithms/fft.h
+        src/algorithms/pitch_shifter.cpp
+        include/pytotune/algorithms/pitch_shifter.h
 )
 
 target_include_directories(pytotune_core PUBLIC
@@ -32,7 +36,12 @@ target_include_directories(pytotune_core PUBLIC
 add_executable(tests tests/io/test_wav_file.cpp
         tests/test_utils.h
         tests/io/test_midi_file.cpp
-        tests/data-structures/test_scale.cpp)
+        tests/data-structures/test_scale.cpp
+        src/algorithms/fft.cpp
+        include/pytotune/algorithms/fft.h
+        src/algorithms/pitch_shifter.cpp
+        include/pytotune/algorithms/pitch_shifter.h
+        tests/algorithms/test_fft.h.cpp)
 target_link_libraries(tests PRIVATE pytotune_core gtest_main)
 
 enable_testing()
