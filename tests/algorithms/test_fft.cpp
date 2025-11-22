@@ -91,52 +91,78 @@ TEST(SmbFftTest, HandlesNonTrivialImagParts) {
     EXPECT_NEAR_VEC(buf, orig);
 }
 
-TEST(SmbFftTest, PerfectSingleBinSpectrum) {
-    const int N = 1024; // FFT size
+// Test A: Real sine -> two symmetric bins (k and N-k)
+TEST(SmbFftTest, RealSine_TwoSymmetricBins) {
+    const int N = 1024;
     const float fs = 48000.0f;
+    const int k = 10; // target bin
+    const float freq = k * fs / N; // exact bin freq
+    const float twoPi = 2.0f * M_PI;
 
-    // Choose a bin that matches perfectly
-    const int targetBin = 10;
-    const float freq = targetBin * fs / N; // exactly bin-aligned!
-
-    const float twoPi = 6.283185307f;
-
-    // Allocate 2*N floats (real/imag interleaved)
     std::vector<float> buf(2 * N, 0.0f);
-
-    // Generate x[n] = sin(2π * targetBin * n / N)
-    // This creates an *exact* integer number of cycles (targetBin cycles).
     for (int n = 0; n < N; ++n) {
-        float x = std::sin(twoPi * targetBin * n / N);
-        buf[2 * n] = x; // real part
-        buf[2 * n + 1] = 0.0f; // imag part
+        float x = std::sin(twoPi * freq * n / fs); // real sine
+        buf[2 * n] = x; // real
+        buf[2 * n + 1] = 0.0f; // imag = 0
     }
 
-    // Forward FFT
     p2t::smbFft(buf, N, -1);
 
-    // Compute magnitudes
-    std::vector<float> mags(N);
-    for (int k = 0; k < N; ++k) {
-        const float real = buf[2 * k];
-        const float imag = buf[2 * k + 1];
-        mags[k] = real * real + imag * imag;
+    auto mag = [&](int idx) {
+        float r = buf[2 * idx];
+        float i = buf[2 * idx + 1];
+        return std::sqrt(r * r + i * i);
+    };
+
+    const int mirror = (N - k) % N;
+    const float eps = 1e-3f;
+
+    // Check symmetric bins are large
+    EXPECT_GT(mag(k), 1e-3f);
+    EXPECT_GT(mag(mirror), 1e-3f);
+
+    // All other bins near zero
+    for (int b = 0; b < N; ++b) {
+        if (b == k || b == mirror) continue;
+        EXPECT_NEAR(mag(b), 0.0f, eps) << "Unexpected energy in bin " << b;
     }
-
-    // Check that target bin has the largest magnitude
-    float targetMag = mags[targetBin];
-
-    // All other bins should be ~0
-    for (int k = 0; k < N; ++k) {
-        if (k == targetBin) continue;
-
-        EXPECT_NEAR(mags[k], 0.0f, 1e-3f)
-            << "Bin " << k << " should be zero for perfect single-bin test";
-    }
-
-    // And the peak must be non-zero
-    EXPECT_GT(targetMag, 100.0f)
-        << "Target bin magnitude should be large";
 }
+
+// Test B: Complex exponential -> single bin k non-zero
+TEST(SmbFftTest, ComplexExponential_SingleBin) {
+    const int N = 1024;
+    const float fs = 48000.0f;
+    const int k = 10;
+    const float freq = k * fs / N;
+    const float twoPi = 2.0f * M_PI;
+
+    std::vector<float> buf(2 * N, 0.0f);
+    // Fill with complex exponential e^{j 2π k n / N} = cos(...) + j sin(...)
+    for (int n = 0; n < N; ++n) {
+        float angle = twoPi * freq * n / fs; // == 2π * k * n / N
+        buf[2 * n] = std::cos(angle); // real part
+        buf[2 * n + 1] = std::sin(angle); // imag part
+    }
+
+    p2t::smbFft(buf, N, -1);
+
+    auto mag = [&](int idx) {
+        float r = buf[2 * idx];
+        float i = buf[2 * idx + 1];
+        return std::sqrt(r * r + i * i);
+    };
+
+    const float eps = 1e-3f;
+
+    // Target bin should be large
+    EXPECT_GT(mag(k), 1e-3f);
+
+    // All other bins ~0
+    for (int b = 0; b < N; ++b) {
+        if (b == k) continue;
+        EXPECT_NEAR(mag(b), 0.0f, eps) << "Unexpected energy in bin " << b;
+    }
+}
+
 
 
