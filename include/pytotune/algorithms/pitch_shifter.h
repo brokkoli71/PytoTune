@@ -7,6 +7,10 @@
 
 #include <vector>
 
+#include "pytotune/yin_pitch_detector.h"
+#include "pytotune/data-structures/scale.h"
+#include "pytotune/io/midi_file.h"
+
 namespace p2t {
     /**
      * @class PitchShifter
@@ -16,11 +20,19 @@ namespace p2t {
     public:
         /**
          * @brief Construct a PitchShifter.
-         * @param fftSize FFT frame size (must be power of 2).
+         * @param windowSize FFT frame size (must be power of 2).
          * @param overlapFactor STFT oversampling factor.
          * @param sampleRate Sample rate in Hz.
+         * @param windowPitchFactors The pitch correction factors per window
          */
-        PitchShifter(long fftSize, long overlapFactor, float sampleRate);
+        PitchShifter(int windowSize, int overlapFactor, float sampleRate, std::vector<float> windowPitchFactors);
+
+        static PitchShifter createPitchRounder(const PitchDetection &pitchDetection, const Scale &scale);
+
+        static PitchShifter createMidiMatcher(const PitchDetection &pitchDetection, const MidiFile &midiFile,
+                                              float tuning = DEFAULT_A4);
+
+        static PitchShifter createConstantPitchMatcher(const PitchDetection &pitchDetection, float pitch);
 
         /**
          * @brief Process a block of audio samples.
@@ -29,17 +41,17 @@ namespace p2t {
          * @param outData Output sample buffer.
          * @param numSamples Number of samples to process.
          */
-        void process(float pitchShiftFactor, const float *inData, float *outData, long numSamples);
+        void process(const float *inData, float *outData, long numSamples);
 
     private:
-        long fftSize; /**< FFT frame size */
-        long halfSize; /**< Half of FFT size */
-        long overlapFactor; /**< Oversampling factor */
+        int windowSize; /**< FFT frame size */
+        int overlapFactor; /**< Oversampling factor */
         float sampleRate; /**< Sample rate in Hz */
-        long stepSize; /**< Hop size = fftSize / overlapFactor */
+        int stepSize; /**< Hop size = fftSize / overlapFactor */
         double freqPerBin; /**< Frequency per FFT bin */
         double expectedPhaseAdvance; /**< Expected phase advance per bin */
-        long inputLatency; /**< Number of samples delay due to overlap */
+        int inputLatency; /**< Number of samples delay due to overlap */
+        std::vector<float> windowPitchFactors;
 
         bool init; /**< Buffers initialized flag */
         long rover; /**< Current position in input/output FIFO */
@@ -78,6 +90,6 @@ namespace p2t {
 
         /** Shift input FIFO left to make room for next frame */
         void shiftInputFIFO();
-    }
+    };
 }
 #endif //PYTOTUNE_PITCH_SHIFTER_H

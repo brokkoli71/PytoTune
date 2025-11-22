@@ -42,9 +42,10 @@ add_executable(tests tests/io/test_wav_file.cpp
         include/pytotune/algorithms/fft.h
         src/algorithms/pitch_shifter.cpp
         include/pytotune/algorithms/pitch_shifter.h
-        tests/algorithms/test_fft.h.cpp
+        tests/algorithms/test_pitch_shifter.cpp
         tests/data-structures/test_scale.cpp
         tests/pitch_detection.cpp
+        tests/algorithms/test_fft.cpp
 )
 target_link_libraries(tests PRIVATE pytotune_core gtest_main)
 

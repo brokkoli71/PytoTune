@@ -43,6 +43,8 @@ namespace p2t {
         /// the globally-merged timeline.
         std::vector<int> getActiveNotesAt(float time) const;
 
+        std::vector<float> getActivePitchesAt(float time, float tuning) const;
+
         /// Total duration of the flattened MIDI in seconds.
         float getLength() const { return lengthSeconds; }
 

@@ -38,5 +38,34 @@ template<typename T>
 #define EXPECT_SAME_MULTISET(a, b) \
 EXPECT_TRUE(SameMultisetImpl(#a, #b, a, b))
 
+template<typename T>
+::testing::AssertionResult NearVecImpl(
+    const char *a_expr, const char *b_expr,
+    const std::vector<T> &a,
+    const std::vector<T> &b,
+    T epsilon = T(1e-6)) {
+    ::testing::AssertionResult failure = ::testing::AssertionFailure()
+                                         << "Expected near equality of these vectors: (Epsilon: \n" << epsilon << ")\n"
+                                         << "  " << a_expr << "\n"
+                                         << "    Which is: " << ::testing::PrintToString(a) << "\n"
+                                         << "  " << b_expr << "\n"
+                                         << "    Which is: " << ::testing::PrintToString(b) << "\n";
+
+    if (a.size() != b.size()) {
+        return failure;
+    }
+
+    for (int i = 0; i < a.size(); i++) {
+        const T diff = a[i] - b[i];
+        if (diff > epsilon || diff < -epsilon)
+            return failure;
+    }
+
+    return ::testing::AssertionSuccess();
+}
+
+#define EXPECT_NEAR_VEC(a, b) \
+    EXPECT_TRUE(NearVecImpl(#a, #b, a, b));
+
 
 #endif //PYTOTUNE_TEST_UTILS_H
