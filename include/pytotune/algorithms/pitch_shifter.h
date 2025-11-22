@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include "pytotune/yin_pitch_detector.h"
+#include "yin_pitch_detector.h"
 #include "pytotune/data-structures/scale.h"
 #include "pytotune/io/midi_file.h"
 

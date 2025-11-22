@@ -1,4 +1,4 @@
-#include "../include/pytotune/yin_pitch_detector.h"
+#include "../../include/pytotune/algorithms/yin_pitch_detector.h"
 
 #include <algorithm>
 
