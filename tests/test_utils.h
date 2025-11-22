@@ -10,7 +10,8 @@
 #include <gtest/gtest.h>
 
 
-constexpr const char *TEST_DATA_DIR = "../tests/data";
+constexpr const char *TEST_DATA_DIR = "../tests/data/";
+constexpr const char *TEST_OUTPUT_DIR = "../tests/testoutput/";
 
 template<typename T>
 ::testing::AssertionResult SameMultisetImpl(

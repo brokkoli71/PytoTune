@@ -22,10 +22,19 @@ namespace p2t {
 
     static WavFile load(const std::string &path);
 
+    void store(const std::string &path) const {
+        store(path, 1); // default to PCM
+    }
+
+    void store(const std::string &path, uint16_t audioFormat) const;
+
+
+
   private:
     WavFile() = default;
 
     void readFile(const std::string &path);
+
 
     WavData wavData_;
   };

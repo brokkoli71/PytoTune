@@ -12,7 +12,7 @@
 
 
 TEST(MidiReaderTest, CanReadValidFile) {
-    std::string testFile = std::string(TEST_DATA_DIR) + "/test.mid";
+    std::string testFile = std::string(TEST_DATA_DIR) + "test.mid";
 
     EXPECT_NO_THROW({
         p2t::MidiFile file = p2t::MidiFile::load(testFile);
@@ -21,7 +21,7 @@ TEST(MidiReaderTest, CanReadValidFile) {
 }
 
 TEST(MidiReaderTest, ReadsNotesCorrectly) {
-    std::string testFile = std::string(TEST_DATA_DIR) + "/test.mid";
+    std::string testFile = std::string(TEST_DATA_DIR) + "test.mid";
 
     EXPECT_NO_THROW({
         p2t::MidiFile file = p2t::MidiFile::load(testFile);
@@ -92,7 +92,7 @@ TEST(MidiReaderTest, ReadsNotesCorrectly) {
 }
 
 TEST(MidiReaderTest, ReadOutOfRange) {
-    std::string testFile = std::string(TEST_DATA_DIR) + "/test.mid";
+    std::string testFile = std::string(TEST_DATA_DIR) + "test.mid";
 
     EXPECT_NO_THROW({
         p2t::MidiFile file = p2t::MidiFile::load(testFile);
