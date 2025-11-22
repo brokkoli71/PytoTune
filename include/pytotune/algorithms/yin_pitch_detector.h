@@ -1,6 +1,6 @@
 #ifndef PYTOTUNE_PITCH_DETECTOR_H
 #define PYTOTUNE_PITCH_DETECTOR_H
-#include "io/wav_file.h"
+#include "../io/wav_file.h"
 namespace p2t
 {
     struct PitchDetection {

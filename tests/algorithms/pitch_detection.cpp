@@ -1,14 +1,14 @@
-#include "../include/pytotune/io/wav_file.h"
+#include "../../include/pytotune/io/wav_file.h"
 #include <gtest/gtest.h>
 
 #include <string>
 
-#include "test_utils.h"
-#include "pytotune/yin_pitch_detector.h"
+#include "../test_utils.h"
+#include "../../include/pytotune/algorithms/yin_pitch_detector.h"
 
 TEST(PitchDetectionTest, DetectSineWavePitch)
 {
-    std::string testFile = std::string(TEST_DATA_DIR) + "/sin_f440_i80_sr44100_af1.wav";
+    std::string testFile = std::string(TEST_DATA_DIR) + "sin_f440_i80_sr44100_af1.wav";
 
     EXPECT_NO_THROW({
         p2t::WavFile reader = p2t::WavFile::load(testFile);
