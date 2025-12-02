@@ -36,13 +36,9 @@ TEST(TestPitchShifter, Playground) {
     std::string midiFile = std::string(TEST_DATA_DIR) + "test.mid";
     p2t::MidiFile file = p2t::MidiFile::load(midiFile);
 
-    p2t::WindowedData<float> pitchFactors = p2t::WindowedData<float>::fromLambda(
-        w, data.samples.size() / w.stride, [&file](float t) {
-            std::vector<float> pitches = file.getActivePitchesAt(t, 440);
-            if (pitches.empty())
-                return 1.0f;
-            return *std::ranges::max_element(pitches) / 440.0f;
-        });
+    p2t::WindowedData<float> pitchFactors = file.getWindowedHighestPitches(w);
+    std::ranges::transform(pitchFactors.data, pitchFactors.data.begin(),
+                           [](float f) { return f / 440.0f; });
 
     auto out = ps.run(data.samples, pitchFactors);
 

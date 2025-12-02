@@ -4,10 +4,13 @@
 
 #ifndef PYTOTUNE_MIDIFILE_H
 #define PYTOTUNE_MIDIFILE_H
-#include <string>
-#include <vector>
-#include <unordered_map>
 #include <cstdint>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include "pytotune/data-structures/scale.h"
+#include "pytotune/data-structures/windowing.h"
 
 /// Represents a single note event on the flattened timeline.
 /// Track information is intentionally discarded: all tracks are merged.
@@ -26,70 +29,87 @@ struct NoteEvent {
 };
 
 namespace p2t {
-    class MidiFile {
-    public:
-        /// Load and parse a MIDI file into a flattened list of NoteEvents.
-        ///
-        /// Behaviour notes:
-        ///   * All track events are combined into a single timeline.
-        ///   * Tempo changes apply globally—no per-track tempo handling exists.
-        ///   * Track numbers from the source file are read but ultimately ignored
-        ///     once noteEvents are created.
-        static MidiFile load(const std::string &filename);
+class MidiFile {
+   public:
+    /// Load and parse a MIDI file into a flattened list of NoteEvents.
+    ///
+    /// Behaviour notes:
+    ///   * All track events are combined into a single timeline.
+    ///   * Tempo changes apply globally—no per-track tempo handling exists.
+    ///   * Track numbers from the source file are read but ultimately ignored
+    ///     once noteEvents are created.
+    static MidiFile load(const std::string &filename);
 
-        /// Returns all notes active at the given time (seconds).
-        ///
-        /// Since track information is discarded, this checks activity across
-        /// the globally-merged timeline.
-        std::vector<int> getActiveNotesAt(float time) const;
+    /// Returns all notes active at the given time (seconds).
+    ///
+    /// Since track information is discarded, this checks activity across
+    /// the globally-merged timeline.
+    std::vector<int> getActiveNotesAt(float time) const;
 
-        std::vector<float> getActivePitchesAt(float time, float tuning) const;
+    std::vector<float> getActivePitchesAt(float time, float tuning = DEFAULT_A4) const;
 
-        /// Total duration of the flattened MIDI in seconds.
-        float getLength() const { return lengthSeconds; }
+    WindowedData<std::vector<int> > getWindowedNotes(const Windowing &windowing) const;
 
-    private:
-        MidiFile() = default;
+    WindowedData<int> getWindowedHighestNotes(const Windowing &windowing, int defaultNote = 0) const;
 
-        struct MidiHeader {
-            uint16_t format;
-            uint16_t numTracks;
-            uint16_t division; // ticks per quarter note
-        };
+    WindowedData<std::vector<float> > getWindowedPitches(const Windowing &windowing,
+                                                         float tuning = DEFAULT_A4) const;
 
-        enum class EventType { NoteOn, NoteOff, Tempo, Other };
+    WindowedData<float> getWindowedHighestPitches(const Windowing &windowing, float defaultPitch = 0.0f,
+                                                  float tuning = DEFAULT_A4) const;
 
-        /// Internal representation of an event before flattening.
-        /// Track number is preserved here for parsing, but is not used
-        /// in the final noteEvents representation.
-        struct MidiEvent {
-            uint32_t absTicks; // absolute tick time
-            EventType type;
-            uint8_t note; // for NoteOn/NoteOff
-            uint8_t velocity; // for NoteOn/NoteOff
-            uint32_t tempo; // for Tempo (µs per quarter note)
-            uint16_t track; // original track number
-        };
+    inline static float noteToPitch(int note, float tuning = DEFAULT_A4);
 
-        std::vector<NoteEvent> noteEvents;
-        float lengthSeconds = 0.0f;
+    /// Total duration of the flattened MIDI in seconds.
+    float getLength() const { return lengthSeconds; }
 
-        // Helpers -------------------------------------------------------------
+   private:
+    MidiFile() = default;
 
-        static uint16_t readUint16(std::ifstream &f);
-
-        static uint32_t readUint32(std::ifstream &f);
-
-        static uint32_t readVLQ(std::ifstream &f);
-
-        static MidiHeader readHeader(std::ifstream &f);
-
-        /// Parse all events in a single MIDI track.
-        /// Track index is provided so events can be tagged before merging.
-        static std::vector<MidiEvent> readTrackEvents(std::ifstream &f,
-                                                      const MidiHeader &header,
-                                                      uint16_t track);
+    struct MidiHeader {
+        uint16_t format;
+        uint16_t numTracks;
+        uint16_t division;  // ticks per quarter note
     };
-} // p2t
 
-#endif //PYTOTUNE_MIDIFILE_H
+    enum class EventType {
+        NoteOn,
+        NoteOff,
+        Tempo,
+        Other
+    };
+
+    /// Internal representation of an event before flattening.
+    /// Track number is preserved here for parsing, but is not used
+    /// in the final noteEvents representation.
+    struct MidiEvent {
+        uint32_t absTicks;  // absolute tick time
+        EventType type;
+        uint8_t note;      // for NoteOn/NoteOff
+        uint8_t velocity;  // for NoteOn/NoteOff
+        uint32_t tempo;    // for Tempo (µs per quarter note)
+        uint16_t track;    // original track number
+    };
+
+    std::vector<NoteEvent> noteEvents;
+    float lengthSeconds = 0.0f;
+
+    // Helpers -------------------------------------------------------------
+
+    static uint16_t readUint16(std::ifstream &f);
+
+    static uint32_t readUint32(std::ifstream &f);
+
+    static uint32_t readVLQ(std::ifstream &f);
+
+    static MidiHeader readHeader(std::ifstream &f);
+
+    /// Parse all events in a single MIDI track.
+    /// Track index is provided so events can be tagged before merging.
+    static std::vector<MidiEvent> readTrackEvents(std::ifstream &f,
+                                                  const MidiHeader &header,
+                                                  uint16_t track);
+};
+}  // namespace p2t
+
+#endif  // PYTOTUNE_MIDIFILE_H
