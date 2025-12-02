@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 
@@ -20,6 +21,10 @@ namespace {
 }
 
 namespace p2t {
+    WavFile::WavFile(WavData data)
+        : wavData_(std::move(data)) {
+    }
+
     WavFile WavFile::load(const std::string &path) {
         WavFile result;
         result.readFile(path);
@@ -99,7 +104,7 @@ namespace p2t {
 
 
     void WavFile::store(const std::string &path, uint16_t audioFormat) const {
-        if (audioFormat!= 1 && audioFormat != 3) {
+        if (audioFormat != 1 && audioFormat != 3) {
             throw std::runtime_error("Unsupported audio format for writing. Only PCM (1) and Float (3) are supported.");
         }
 

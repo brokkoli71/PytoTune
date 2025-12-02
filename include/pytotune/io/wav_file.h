@@ -18,17 +18,17 @@ namespace p2t {
 
   class WavFile {
   public:
+    explicit WavFile(WavData data);
+
     const WavData &data() const { return wavData_; }
 
     static WavFile load(const std::string &path);
 
     void store(const std::string &path) const {
-        store(path, 1); // default to PCM
+      store(path, 1); // default to PCM
     }
 
     void store(const std::string &path, uint16_t audioFormat) const;
-
-
 
   private:
     WavFile() = default;

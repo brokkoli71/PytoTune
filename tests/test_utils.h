@@ -59,7 +59,7 @@ template<typename T>
     for (int i = 0; i < a.size(); i++) {
         const T diff = a[i] - b[i];
         if (diff > epsilon || diff < -epsilon)
-            return failure;
+            return failure << "Fails at i = " << i << " with: " << a[i] << " != " << b[i] << "\n";
     }
 
     return ::testing::AssertionSuccess();
@@ -67,6 +67,9 @@ template<typename T>
 
 #define EXPECT_NEAR_VEC(a, b) \
     EXPECT_TRUE(NearVecImpl(#a, #b, a, b));
+
+#define EXPECT_NEAR_VEC_EPS(a, b, eps) \
+    EXPECT_TRUE(NearVecImpl(#a, #b, a, b, eps));
 
 
 #endif //PYTOTUNE_TEST_UTILS_H

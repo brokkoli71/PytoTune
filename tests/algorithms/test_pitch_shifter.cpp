@@ -1,30 +1,47 @@
-#include "../include/pytotune/io/wav_file.h"
 #include <gtest/gtest.h>
 
+#include <cmath>
+
+#include "../reference/pitch_shifter_reference.h"
 #include "../test_utils.h"
-#include "../../include/pytotune/algorithms/yin_pitch_detector.h"
-#include "pytotune/algorithms/pitch_shifter.h"
-#include "pytotune/io/midi_file.h"
+#include "pytotune/algorithms/PitchShifter.h"
+#include "pytotune/io/wav_file.h"
 
-TEST(PitchShifterTest, Playground) {
-    std::string wavFile = std::string(TEST_DATA_DIR) + "sin_f440_i80_sr44100_af1.wav";
-    p2t::WavFile reader = p2t::WavFile::load(wavFile);
+TEST(TestPitchShifterReference, Playground) {
+    std::string testFile = std::string(TEST_DATA_DIR) + "voice_f440_sr44100.wav";
 
-    const auto &data = reader.data();
-    auto detection = p2t::YINPitchDetector(2024, 0).detect_pitch(&data, 20, 2000, 0.2f);
+    p2t::WavFile readerAF1 = p2t::WavFile::load(testFile);
+    auto &data = readerAF1.data();
+    std::vector<float> out(data.samples.size(), 0.0f);
 
-    std::string midiFile_ = std::string(TEST_DATA_DIR) + "test.mid";
-    p2t::MidiFile midiFile = p2t::MidiFile::load(midiFile_);
+    smbPitchShift(1.05946309436f, data.samples.size(), 4096, 4, data.sampleRate, (float *) &data.samples[0], &out[0]);
 
-    p2t::PitchShifter ps = p2t::PitchShifter::createConstantPitchMatcher(detection, 440);
+    p2t::WavFile newFile({data.sampleRate, 2, out});
+    newFile.store(std::string(TEST_OUTPUT_DIR) + "test.wav");
+}
 
-    p2t::WavData outWavData;
-    outWavData.sampleRate = data.sampleRate;
-    outWavData.numChannels = data.numChannels;
-    outWavData.samples = std::vector<float>(data.samples.size(), 0.0f);
-    ps.process(&data.samples[0], &outWavData.samples[0], data.samples.size());
+TEST(TestPitchShifter, Playground) {
+    std::string testFile = std::string(TEST_DATA_DIR) + "voice-majorscale_fstart220_fend440_cd6_tail_pause.wav";
 
-    for (auto sample: outWavData.samples) {
-        std::cout << sample << ", ";
-    }
+    p2t::WavFile readerAF1 = p2t::WavFile::load(testFile);
+    auto &data = readerAF1.data();
+    p2t::PitchShifter ps({4096, 4096 / 4}, data.sampleRate);
+    auto out = ps.run(data.samples, 0.9f);
+
+    p2t::WavFile newFile({data.sampleRate, 2, out});
+    newFile.store(std::string(TEST_OUTPUT_DIR) + "test.wav");
+}
+
+TEST(TestPitchShifter, ResultEqualsReferenceCode) {
+    std::string testFile = std::string(TEST_DATA_DIR) + "voice-majorscale_fstart220_fend440_cd6_tail_pause.wav";
+    p2t::WavFile readerAF1 = p2t::WavFile::load(testFile);
+    auto &data = readerAF1.data();
+
+    p2t::PitchShifter ps({4096, 4096 / 4}, data.sampleRate);
+    auto out1 = ps.run(data.samples, 0.9f);
+
+    std::vector<float> out2(data.samples.size(), 0.0f);
+    smbPitchShift(0.9f, data.samples.size(), 4096, 4, data.sampleRate, (float *) &data.samples[0], &out2[0]);
+
+    EXPECT_NEAR_VEC_EPS(out1, out2, 1e-2f);
 }
