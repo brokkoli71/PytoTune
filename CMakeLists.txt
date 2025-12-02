@@ -27,8 +27,9 @@ add_library(pytotune_core
         src/algorithms/yin_pitch_detector.cpp
         tests/reference/pitch_shifter_reference.cpp
         tests/reference/pitch_shifter_reference.h
-        src/algorithms/PitchShifter.cpp
-        include/pytotune/algorithms/PitchShifter.h
+        src/algorithms/pitch_shifter.cpp
+        include/pytotune/algorithms/pitch_shifter.h
+        src/data-structures/windowing.cpp
 )
 
 target_include_directories(pytotune_core PUBLIC
@@ -46,6 +47,7 @@ add_executable(tests tests/io/test_wav_file.cpp
         tests/data-structures/test_scale.cpp
         tests/algorithms/pitch_detection.cpp
         tests/algorithms/test_fft.cpp
+        src/data-structures/windowing.cpp
 )
 target_link_libraries(tests PRIVATE pytotune_core gtest_main)
 
