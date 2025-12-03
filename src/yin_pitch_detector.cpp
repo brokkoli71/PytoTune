@@ -6,24 +6,14 @@
 
 namespace p2t
 {
-    PitchDetection YINPitchDetector::detect_pitch(const WavData* audio_buffer, const int f_min, const int f_max) const
+    PitchDetection YINPitchDetector::detect_pitch(const WavData* audio_buffer, const int f_min, const int f_max, const float threshold) const
     {
         if (f_min <= 0 || f_min >= f_max)
         {
             throw std::invalid_argument("f_min and f_max must be positive and f_min must be less than f_max.");
         }
-        int tau_min = audio_buffer->sampleRate / f_max;
-        int tau_max = audio_buffer->sampleRate / f_min;
-        float threshold = 0.2f; // default threshold
-        return detect_pitch(audio_buffer, tau_min, tau_max, threshold);
-    }
-
-    PitchDetection YINPitchDetector::detect_pitch(const WavData* audio_buffer, const int tau_min, const int tau_max, const float threshold) const
-    {
-        if (tau_min <= 0 || tau_min >= tau_max)
-        {
-            throw std::invalid_argument("tau_min and tau_max must be positive and tau_min must be less than tau_max.");
-        }
+        const int tau_min = audio_buffer->sampleRate / f_max;
+        const int tau_max = audio_buffer->sampleRate / f_min;
 
         PitchDetection result;
         result.window_size = this->window_size;
@@ -34,31 +24,32 @@ namespace p2t
         for (size_t i = 0; i < audio_buffer->samples.size(); i += this->window_size-this->window_overlap)
         {
             // Process each window
-            size_t window_end = std::min(i + this->window_size, audio_buffer->samples.size());
-            std::vector<float> diff(tau_max + 1, 0.0f);
+            const size_t window_end = std::min(i + this->window_size, audio_buffer->samples.size());
+            std::vector diff(tau_max + 1, 0.0f);
 
             for (int tau = tau_min; tau <= tau_max; ++tau)
             {
                 float sum = 0.0f;
                 for (size_t j = i; j < window_end - tau; ++j)
                 {
-                    float delta = audio_buffer->samples[j] - audio_buffer->samples[j + tau];
+                    const float delta = audio_buffer->samples[j] - audio_buffer->samples[j + tau];
                     sum += delta * delta;
                 }
                 diff[tau] = sum;
             }
 
-            // CMND (Cumulative Mean Normalized Difference Function)
-            std::vector<float> cmnd(tau_max + 1, 0.0f);
-            cmnd[0] = 1.0f; // Avoid division by zero
-            float running_sum = 0.0f;
-            for (int tau = 1; tau <= tau_max; ++tau)
-            {
-                running_sum += diff[tau];
-                cmnd[tau] = diff[tau] * tau / running_sum;
-            }
+            // // CMND (Cumulative Mean Normalized Difference Function)
+            // std::vector<float> cmnd(tau_max + 1, 0.0f);
+            // cmnd[0] = 1.0f; // Avoid division by zero
+            // float running_sum = 0.0f;
+            // for (int tau = 1; tau <= tau_max; ++tau)
+            // {
+            //     running_sum += diff[tau];
+            //     cmnd[tau] = diff[tau] * tau / running_sum;
+            // }
+
             // Find the pitch for this window based on the diff function and threshold
-            int best_tau = 0;
+            int best_tau = tau_min;
             for (int tau = tau_min; tau <= tau_max; ++tau)
             {
                 if (diff[tau] < diff[best_tau]) best_tau = tau; // as fallback
@@ -68,7 +59,9 @@ namespace p2t
                     break;
                 }
             }
-            std::cout << "Best tau: " << best_tau << std::endl;
+            std::cout << "diff[" << best_tau << "] = " << diff[best_tau] << std::endl;
+            std::cout << static_cast<float>(audio_buffer->sampleRate) / best_tau << std::endl;
+
             // quadratic interpolation to refine the estimate if best_tau is not at the boundaries
             auto refined_tau = static_cast<float>(best_tau);
             if (best_tau > 0 && best_tau < tau_max)
