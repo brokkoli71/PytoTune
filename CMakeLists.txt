@@ -34,7 +34,8 @@ add_executable(tests tests/io/test_wav_file.cpp
         tests/test_utils.h
         tests/io/test_midi_file.cpp
         tests/data-structures/test_scale.cpp
-        tests/pitch_detection.cpp)
+        tests/pitch_detection.cpp
+)
 target_link_libraries(tests PRIVATE pytotune_core gtest_main)
 
 enable_testing()
