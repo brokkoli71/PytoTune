@@ -22,6 +22,7 @@ add_library(pytotune_core
         src/data-structures/mode.cpp
         src/data-structures/scale.cpp
         src/io/midi_file.cpp
+        src/yin_pitch_detector.cpp
 )
 
 target_include_directories(pytotune_core PUBLIC
@@ -32,7 +33,9 @@ target_include_directories(pytotune_core PUBLIC
 add_executable(tests tests/io/test_wav_file.cpp
         tests/test_utils.h
         tests/io/test_midi_file.cpp
-        tests/data-structures/test_scale.cpp)
+        tests/data-structures/test_scale.cpp
+        tests/pitch_detection.cpp
+)
 target_link_libraries(tests PRIVATE pytotune_core gtest_main)
 
 enable_testing()
