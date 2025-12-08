@@ -59,8 +59,8 @@ namespace p2t
                     break;
                 }
             }
-            std::cout << "diff[" << best_tau << "] = " << diff[best_tau] << std::endl;
-            std::cout << static_cast<float>(audio_buffer->sampleRate) / best_tau << std::endl;
+            // std::cout << "diff[" << best_tau << "] = " << diff[best_tau] << std::endl;
+            // std::cout << static_cast<float>(audio_buffer->sampleRate) / best_tau << std::endl;
 
             // quadratic interpolation to refine the estimate if best_tau is not at the boundaries
             auto refined_tau = static_cast<float>(best_tau);
