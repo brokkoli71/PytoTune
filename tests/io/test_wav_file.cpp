@@ -68,3 +68,11 @@ TEST(WavFileTest, CorrectDataSin) {
 
         });
 }
+
+TEST(WavFileTest, StereoAsMono) {
+    EXPECT_NO_THROW({
+        p2t::WavFile reader = p2t::WavFile::load(constants::STEREO_FILE);
+        const auto& data = reader.data();
+        EXPECT_EQ(data.numChannels, 1);
+        });
+}

@@ -1,6 +1,7 @@
 #include "../../include/pytotune/io/wav_file.h"
 #include <algorithm>
 #include <cstring>
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -90,6 +91,17 @@ namespace p2t {
             samples.assign(ptr, ptr + numSamples);
         } else {
             throw std::runtime_error("Unsupported WAV format. Only 16-bit PCM and 32-bit float are supported.");
+        }
+
+        // For now: if stereo or more channels, take only first channel
+        if (numSamples > 1) {
+            std::vector<float> mono_samples(numSamples/numChannels);
+            for (size_t i = 0; i < mono_samples.size(); ++i) {
+                mono_samples[i] = samples[i * numChannels];
+            }
+            samples = std::move(mono_samples);
+            samples.shrink_to_fit();
+            numChannels = 1;
         }
 
         wavData_.sampleRate = sampleRate;

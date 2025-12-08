@@ -17,6 +17,7 @@ namespace constants {
 
     const std::string SIN_AF3_FILE = TEST_DATA_DIR + "/sin_f440_i80_sr44100_af3.wav";
     const std::string INVALID_FILE = TEST_DATA_DIR + "/invalid.wav";
+    const std::string STEREO_FILE = TEST_DATA_DIR + "/some_stereo_file.wav";
 
     const std::string PIANO_FILE = TEST_DATA_DIR + "/piano_f220_sr44100.wav";
     const std::string STRINGS_FILE = TEST_DATA_DIR + "/strings_f440_sr44100.wav";
