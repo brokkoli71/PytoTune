@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "../../include/pytotune/io/wav_file.h"
 #include <gtest/gtest.h>
 
@@ -49,4 +51,20 @@ TEST(WavFileTest, ThrowsOnInvalidFile) {
     EXPECT_THROW({
                  p2t::WavFile::load(testFile);
                  }, std::runtime_error);
+}
+
+TEST(WavFileTest, CorrectDataSin) {
+    EXPECT_NO_THROW({
+        p2t::WavFile reader = p2t::WavFile::load(constants::SIN_FILE);
+        const auto& data = reader.data();
+        const float sin_freq = static_cast<float>(data.sampleRate) / 440;
+        const float sin_amp = 0.8f;
+        EXPECT_NEAR(data.samples[sin_freq/4], sin_amp, 1e-3);
+        // for (size_t i = 0; i < sin_freq; i++){
+        for (size_t i = 0; i < data.samples.size(); i++){
+            float expected = sin_amp * std::sin(2 * M_PI / sin_freq * i);
+            EXPECT_NEAR(data.samples[i], expected, 1e-3);
+        }
+
+        });
 }
