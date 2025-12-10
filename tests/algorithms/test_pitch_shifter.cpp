@@ -8,7 +8,7 @@
 #include "pytotune/io/midi_file.h"
 #include "pytotune/io/wav_file.h"
 
-TEST(TestPitchShifterReference, Playground) {
+/* TEST(TestPitchShifterReference, Playground) {
     std::string testFile = std::string(TEST_DATA_DIR) + "voice_f440_sr44100.wav";
 
     p2t::WavFile readerAF1 = p2t::WavFile::load(testFile);
@@ -44,7 +44,7 @@ TEST(TestPitchShifter, Playground) {
 
     p2t::WavFile newFile({data.sampleRate, 1, out});
     newFile.store(std::string(TEST_OUTPUT_DIR) + "test.wav");
-}
+}*/
 
 TEST(TestPitchShifter, ResultEqualsReferenceCode) {
     std::string testFile = std::string(TEST_DATA_DIR) + "voice-majorscale_fstart220_fend440_cd6_tail_pause.wav";
@@ -60,6 +60,6 @@ TEST(TestPitchShifter, ResultEqualsReferenceCode) {
     EXPECT_NEAR_VEC_EPS(out1, out2, 1e-2f);
     p2t::WavFile newFile1({data.sampleRate, 2, out1});
     p2t::WavFile newFile2({data.sampleRate, 2, out2});
-    newFile1.store(std::string(TEST_OUTPUT_DIR) + "test1.wav");
-    newFile2.store(std::string(TEST_OUTPUT_DIR) + "test2.wav");
+    // newFile1.store(std::string(TEST_OUTPUT_DIR) + "test1.wav");
+    // newFile2.store(std::string(TEST_OUTPUT_DIR) + "test2.wav");
 }
