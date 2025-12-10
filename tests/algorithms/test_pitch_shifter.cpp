@@ -47,11 +47,12 @@ TEST(TestPitchShifter, Playground) {
 }*/
 
 TEST(TestPitchShifter, ResultEqualsReferenceCode) {
-    std::string testFile = std::string(TEST_DATA_DIR) + "voice-majorscale_fstart220_fend440_cd6_tail_pause.wav";
+    std::string testFile = constants::TEST_DATA_DIR +
+                           "/voice-majorscale_fstart220_fend440_cd6_tail_pause.wav";
     p2t::WavFile readerAF1 = p2t::WavFile::load(testFile);
     auto &data = readerAF1.data();
 
-    p2t::PitchShifter ps({4096, 4096 / 4, data.sampleRate});
+    p2t::PitchShifter ps({4096, 4096 / 4, static_cast<float>(data.sampleRate)});
     auto out1 = ps.run(data.samples, 0.9f);
 
     std::vector<float> out2(data.samples.size(), 0.0f);

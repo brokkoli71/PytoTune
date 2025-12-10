@@ -9,8 +9,6 @@
 #include <vector>
 #include <gtest/gtest.h>
 
-constexpr const char *TEST_DATA_DIR = "../tests/data";
-
 namespace constants {
     const std::string TEST_DATA_DIR = "../tests/data";
 

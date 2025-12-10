@@ -1,4 +1,4 @@
-#include "../../include/pytotune/io/wav_file.h"
+#include "pytotune/io/wav_file.h"
 #include <algorithm>
 #include <cstring>
 #include <fstream>
