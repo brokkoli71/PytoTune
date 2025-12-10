@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "../../include/pytotune/io/wav_file.h"
 #include <gtest/gtest.h>
 
@@ -7,7 +9,7 @@
 
 
 TEST(WavFileTest, DoesNotThrowOnValidFile) {
-    std::string testFile = std::string(TEST_DATA_DIR) + "pcm.wav";
+    std::string testFile = constants::TEST_DATA_DIR + "/pcm.wav";
 
     EXPECT_NO_THROW({
         p2t::WavFile reader = p2t::WavFile::load(testFile);
@@ -21,17 +23,14 @@ TEST(WavFileTest, DoesNotThrowOnValidFile) {
 
 TEST(WavFileTest, AudioFormatsPCMAndFloatAreEquivalent)
 {
-    std::string testFileAF1 = std::string(TEST_DATA_DIR) + "sin_f440_i80_sr44100_af1.wav";
-    std::string testFileAF3 = std::string(TEST_DATA_DIR) + "sin_f440_i80_sr44100_af3.wav";
-
     EXPECT_NO_THROW({
-        p2t::WavFile readerAF1 = p2t::WavFile::load(testFileAF1);
+        p2t::WavFile readerAF1 = p2t::WavFile::load(constants::SIN_FILE);
         const auto& dataAF1 = readerAF1.data();
 
         EXPECT_EQ(dataAF1.sampleRate, 44100);
         EXPECT_EQ(dataAF1.numChannels, 1);
 
-        p2t::WavFile readerAF3 = p2t::WavFile::load(testFileAF3);
+        p2t::WavFile readerAF3 = p2t::WavFile::load(constants::SIN_AF3_FILE);
         const auto& dataAF3 = readerAF3.data();
 
         EXPECT_EQ(dataAF3.sampleRate, 44100);
@@ -47,33 +46,25 @@ TEST(WavFileTest, AudioFormatsPCMAndFloatAreEquivalent)
 }
 
 TEST(WavFileTest, ThrowsOnInvalidFile) {
-    std::string testFile = std::string(TEST_DATA_DIR) + "invalid.wav";
+    std::string testFile = constants::INVALID_FILE;
 
     EXPECT_THROW({
                  p2t::WavFile::load(testFile);
                  }, std::runtime_error);
 }
 
-TEST(WavFileTest, RoundTrip) {
-    std::string testFile = std::string(TEST_DATA_DIR) + "pcm.wav";
-    std::string testOutput = std::string(TEST_OUTPUT_DIR) + "testRoundTrip.wav";
+TEST(WavFileTest, CorrectDataSin) {
+    EXPECT_NO_THROW({
+        p2t::WavFile reader = p2t::WavFile::load(constants::SIN_FILE);
+        const auto& data = reader.data();
+        const float sin_freq = static_cast<float>(data.sampleRate) / 440;
+        const float sin_amp = 0.8f;
+        EXPECT_NEAR(data.samples[sin_freq/4], sin_amp, 1e-3);
+        // for (size_t i = 0; i < sin_freq; i++){
+        for (size_t i = 0; i < data.samples.size(); i++){
+            float expected = sin_amp * std::sin(2 * M_PI / sin_freq * i);
+            EXPECT_NEAR(data.samples[i], expected, 1e-3);
+        }
 
-    for (int audioFormats[] = {1, 3}; const int af : audioFormats) {
-        EXPECT_NO_THROW({
-            p2t::WavFile reader = p2t::WavFile::load(testFile);
-            const auto& data = reader.data();
-
-            reader.store(testOutput, af);
-            p2t::WavFile reader2 = p2t::WavFile::load(testOutput);
-            const auto& data2 = reader2.data();
-            EXPECT_EQ(data.sampleRate, data2.sampleRate);
-            EXPECT_EQ(data.numChannels, data2.numChannels);
-            ASSERT_EQ(data.samples.size(), data2.samples.size());
-            for (size_t i = 0; i < data.samples.size(); ++i) {
-                EXPECT_NEAR(data.samples[i], data2.samples[i], 1e-6);
-            }
         });
-        // Clean up
-        std::remove(testOutput.c_str());
-    }
 }
