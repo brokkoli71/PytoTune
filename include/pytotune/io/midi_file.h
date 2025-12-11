@@ -50,12 +50,12 @@ namespace p2t {
 
         WindowedData<std::vector<int> > getWindowedNotes(const Windowing &windowing) const;
 
-        WindowedData<int> getWindowedHighestNote(const Windowing &windowing, int defaultNote = 0) const;
+        WindowedData<int> getWindowedHighestNotes(const Windowing &windowing, int defaultNote = 0) const;
 
         WindowedData<std::vector<float> > getWindowedPitches(const Windowing &windowing,
                                                              float tuning = DEFAULT_A4) const;
 
-        WindowedData<float> getWindowedHighestPitch(const Windowing &windowing, float defaultPitch = 0.0f,
+        WindowedData<float> getWindowedHighestPitches(const Windowing &windowing, float defaultPitch = 0.0f,
                                                     float tuning = DEFAULT_A4) const;
 
         inline static float noteToPitch(int note, float tuning = DEFAULT_A4);

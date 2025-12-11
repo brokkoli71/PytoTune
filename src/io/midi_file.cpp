@@ -243,7 +243,7 @@ namespace p2t {
         return {windowing, result};
     }
 
-    WindowedData<int> MidiFile::getWindowedHighestNote(const Windowing &windowing, int defaultNote) const {
+    WindowedData<int> MidiFile::getWindowedHighestNotes(const Windowing &windowing, int defaultNote) const {
         const int numWindows = static_cast<int>(this->lengthSeconds * windowing.sampleRate / windowing.stride);
         std::vector<int> result(numWindows, -1);
 
@@ -280,10 +280,10 @@ namespace p2t {
         return {windowing, result};
     }
 
-    WindowedData<float> MidiFile::getWindowedHighestPitch(const Windowing &windowing,
+    WindowedData<float> MidiFile::getWindowedHighestPitches(const Windowing &windowing,
                                                           float defaultPitch,
                                                           float tuning) const {
-        auto windowedNotes = getWindowedHighestNote(windowing, -1);
+        auto windowedNotes = getWindowedHighestNotes(windowing, -1);
         std::vector<float> result(windowedNotes.data.size());
 
         for (int i = 0; i < result.size(); i++) {
