@@ -36,6 +36,7 @@ namespace p2t {
 
     /**
      * @brief Number of channels (1 = mono, 2 = stereo, ...).
+     * For now, only mono is supported.
      */
     uint16_t numChannels = 0;
 
@@ -70,6 +71,8 @@ namespace p2t {
      * @param path Filesystem path to the WAV file.
      * @return WavFile Instance holding the decoded data.
      * @throws std::runtime_error on file I/O or format errors.
+     *
+     * For now, stereo files will only load first channel and ignore others.
      */
     static WavFile load(const std::string &path);
 
