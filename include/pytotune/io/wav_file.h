@@ -58,6 +58,8 @@ namespace p2t {
    */
   class WavFile {
   public:
+    explicit WavFile(WavData data);
+
     /**
      * @brief Get the loaded WAV data.
      * @return const WavData& Reference to the internal WavData.
@@ -73,6 +75,13 @@ namespace p2t {
      * For now, stereo files will only load first channel and ignore others.
      */
     static WavFile load(const std::string &path);
+
+    void store(const std::string &path) const {
+      store(path, 1); // default to PCM
+    }
+
+
+    void store(const std::string &path, uint16_t audioFormat) const;
 
   private:
     /**

@@ -5,6 +5,7 @@
 #include "pytotune/io/midi_file.h"
 
 #include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <ranges>
 #include <stdexcept>
@@ -195,6 +196,11 @@ MidiFile MidiFile::load(const std::string &filename) {
 }
 
 // ---------------------- Query ----------------------
+float MidiFile::noteToPitch(int note, float tuning) {
+    constexpr int a4 = 69;
+    return tuning * std::pow(2.0f, static_cast<float>(note - a4) / 12.0f);
+}
+
 std::vector<int> MidiFile::getActiveNotesAt(const float time) const {
     if (time > lengthSeconds || time < 0) return {};
 
@@ -209,5 +215,81 @@ std::vector<int> MidiFile::getActiveNotesAt(const float time) const {
     }
 
     return result;
+}
+
+std::vector<float> MidiFile::getActivePitchesAt(const float time, const float tuning) const {
+    const std::vector<int> notes = getActiveNotesAt(time);
+    std::vector<float> pitches(notes.size());
+
+    std::transform(notes.begin(), notes.end(), pitches.begin(), [&tuning](int note) {
+        return noteToPitch(note, tuning);
+    });
+
+    return pitches;
+}
+
+WindowedData<std::vector<int> > MidiFile::getWindowedNotes(const Windowing &windowing) const {
+    const int numWindows = static_cast<int>(this->lengthSeconds * windowing.sampleRate / windowing.stride);
+    std::vector<std::vector<int> > result(numWindows);
+
+    for (const NoteEvent &noteEvent : this->noteEvents) {
+        const int startIndex = static_cast<int>(noteEvent.start * windowing.sampleRate / windowing.stride);
+        const int endIndex = static_cast<int>(noteEvent.end * windowing.sampleRate / windowing.stride);
+
+        for (int i = startIndex; i < endIndex; i++) {
+            result[i].push_back(noteEvent.note);
+        }
+    }
+    return {windowing, result};
+}
+
+WindowedData<int> MidiFile::getWindowedHighestNotes(const Windowing &windowing, int defaultNote) const {
+    const int numWindows = static_cast<int>(this->lengthSeconds * windowing.sampleRate / windowing.stride);
+    std::vector<int> result(numWindows, -1);
+
+    for (const NoteEvent &noteEvent : this->noteEvents) {
+        const int startIndex = static_cast<int>(noteEvent.start * windowing.sampleRate / windowing.stride);
+        const int endIndex = static_cast<int>(noteEvent.end * windowing.sampleRate / windowing.stride);
+
+        for (int i = startIndex; i < endIndex; i++) {
+            result[i] = std::max(static_cast<int>(noteEvent.note), result[i]);
+        }
+    }
+
+    for (int i = 0; i < numWindows; i++) {
+        if (result[i] == -1) result[i] = defaultNote;
+    }
+
+    return {windowing, result};
+}
+
+WindowedData<std::vector<float> > MidiFile::getWindowedPitches(const Windowing &windowing, float tuning) const {
+    auto windowedNotes = getWindowedNotes(windowing);
+    std::vector<std::vector<float> > result;
+    result.reserve(windowedNotes.data.size());
+
+    for (const std::vector<int> &notes : windowedNotes.data) {
+        std::vector<float> pitches(notes.size());
+
+        for (int i = 0; i < notes.size(); i++) {
+            pitches[i] = noteToPitch(notes[i], tuning);
+        }
+        result.push_back(pitches);
+    }
+
+    return {windowing, result};
+}
+
+WindowedData<float> MidiFile::getWindowedHighestPitches(const Windowing &windowing,
+                                                        float defaultPitch,
+                                                        float tuning) const {
+    auto windowedNotes = getWindowedHighestNotes(windowing, -1);
+    std::vector<float> result(windowedNotes.data.size());
+
+    for (int i = 0; i < result.size(); i++) {
+        result[i] = windowedNotes.data[i] == -1 ? defaultPitch : noteToPitch(windowedNotes.data[i], tuning);
+    }
+
+    return {windowing, result};
 }
 }  // namespace p2t
