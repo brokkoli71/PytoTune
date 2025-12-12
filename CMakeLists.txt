@@ -22,7 +22,10 @@ add_library(pytotune_core
         src/data-structures/mode.cpp
         src/data-structures/scale.cpp
         src/io/midi_file.cpp
-        src/yin_pitch_detector.cpp
+        src/algorithms/fft.cpp
+        src/algorithms/yin_pitch_detector.cpp
+        src/algorithms/pitch_shifter.cpp
+        src/data-structures/windowing.cpp
 )
 
 target_include_directories(pytotune_core PUBLIC
@@ -34,7 +37,14 @@ add_executable(tests tests/io/test_wav_file.cpp
         tests/test_utils.h
         tests/io/test_midi_file.cpp
         tests/data-structures/test_scale.cpp
-        tests/pitch_detection.cpp
+        src/algorithms/fft.cpp
+        tests/algorithms/test_pitch_shifter.cpp
+        tests/data-structures/test_scale.cpp
+        tests/algorithms/pitch_detection.cpp
+        tests/algorithms/test_fft.cpp
+        src/data-structures/windowing.cpp
+        tests/reference/pitch_shifter_reference.cpp
+        tests/reference/pitch_shifter_reference.h
 )
 target_link_libraries(tests PRIVATE pytotune_core gtest_main)
 

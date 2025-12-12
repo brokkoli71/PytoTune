@@ -5,8 +5,8 @@
 
 #include <string>
 
-#include "test_utils.h"
-#include "pytotune/yin_pitch_detector.h"
+#include "../test_utils.h"
+#include "pytotune/algorithms/yin_pitch_detector.h"
 
 TEST(PitchDetectionTest, DetectSineWavePitch) {
     EXPECT_NO_THROW({
@@ -17,7 +17,8 @@ TEST(PitchDetectionTest, DetectSineWavePitch) {
             window_size);
         const int middle_C_freq = 261; // Frequency of Middle C (C4)
 
-        const auto detection = p2t::YINPitchDetector(window_size, 0).detect_pitch(&data, middle_C_freq, middle_C_freq*4, 0.2f );
+        const auto detection = p2t::YINPitchDetector(window_size, 0).detect_pitch(&data, middle_C_freq, middle_C_freq*4,
+            0.2f );
 
         EXPECT_EQ(detection.pitch_values.size() , expected_windows);
 
@@ -29,8 +30,7 @@ TEST(PitchDetectionTest, DetectSineWavePitch) {
         });
 }
 
-TEST(PitchDetectionTest, DetectSineWavePitchWithOverlap)
-{
+TEST(PitchDetectionTest, DetectSineWavePitchWithOverlap) {
     EXPECT_NO_THROW({
         const p2t::WavFile reader = p2t::WavFile::load(constants::SIN_FILE);
         const auto& data = reader.data();
@@ -40,7 +40,8 @@ TEST(PitchDetectionTest, DetectSineWavePitchWithOverlap)
             (window_size-window_overlap));
         const int middle_C_freq = 261; // Frequency of Middle C (C4)
 
-        const auto detection = p2t::YINPitchDetector(window_size, window_overlap).detect_pitch(&data, middle_C_freq, middle_C_freq*4, 0.2f );
+        const auto detection = p2t::YINPitchDetector(window_size, window_overlap).detect_pitch(&data, middle_C_freq,
+            middle_C_freq*4, 0.2f );
 
         EXPECT_EQ(detection.pitch_values.size() , expected_windows);
 
@@ -52,8 +53,7 @@ TEST(PitchDetectionTest, DetectSineWavePitchWithOverlap)
         });
 }
 
-TEST(PitchDetectionTest, DISABLED_DetectPianoPitch)
-{
+TEST(PitchDetectionTest, DISABLED_DetectPianoPitch) {
     std::string testFile = constants::PIANO_FILE;
 
     EXPECT_NO_THROW({
@@ -69,14 +69,13 @@ TEST(PitchDetectionTest, DISABLED_DetectPianoPitch)
         {
         // std::cout << "Detected pitch: " << pitch << " Hz" << std::endl;
         // std::cout << pitch << ", ";
-            // Expect the detected pitch to be approximately 220 Hz
-            EXPECT_NEAR(pitch, 220.0f, 1.0f);
+        // Expect the detected pitch to be approximately 220 Hz
+        EXPECT_NEAR(pitch, 220.0f, 1.0f);
         }
         });
 }
 
-TEST(PitchDetectionTest, DISABLED_DetectStringsPitch)
-{
+TEST(PitchDetectionTest, DISABLED_DetectStringsPitch) {
     std::string testFile = constants::STRINGS_FILE;
 
     EXPECT_NO_THROW({
@@ -90,10 +89,10 @@ TEST(PitchDetectionTest, DISABLED_DetectStringsPitch)
 
         for (const auto& pitch : detection.pitch_values)
         {
-            std::cout << pitch << ", ";
+        std::cout << pitch << ", ";
         // std::cout << "Detected pitch: " << pitch << " Hz" << std::endl;
-            // Expect the detected pitch to be approximately 220 Hz
-            EXPECT_NEAR(pitch, 440.0f, 1.0f);
+        // Expect the detected pitch to be approximately 220 Hz
+        EXPECT_NEAR(pitch, 440.0f, 1.0f);
         }
         });
 }
