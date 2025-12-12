@@ -150,7 +150,7 @@ TEST(MidiReaderTest, ReadWindowedPitches) {
         EXPECT_FLOAT_EQ(windowedMaxPitches[0], note2pitch(60));
 
         EXPECT_SAME_MULTISET(windowedPitches[4], (std::vector<float>{note2pitch(60), note2pitch(57)}));
-        EXPECT_EQ(windowedMaxPitches[4], note2pitch(60));
+        EXPECT_FLOAT_EQ(windowedMaxPitches[4], note2pitch(60));
 
         EXPECT_SAME_MULTISET(windowedPitches[28], (std::vector<float>{note2pitch(60), note2pitch(65), note2pitch(69),
             note2pitch(53)}));
