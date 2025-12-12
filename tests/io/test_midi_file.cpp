@@ -6,6 +6,7 @@
 
 #include <string>
 #include <algorithm>
+#include <cmath>
 
 #include "../test_utils.h"
 #include "pytotune/io/midi_file.h"
@@ -99,6 +100,61 @@ TEST(MidiReaderTest, ReadOutOfRange) {
 
         EXPECT_TRUE(file.getActiveNotesAt(-1).empty());
         EXPECT_TRUE(file.getActiveNotesAt(file.getLength() + 1).empty());
+
+        });
+}
+
+TEST(MidiReaderTest, ReadWindowedNotes) {
+    std::string testFile = constants::TEST_DATA_DIR + "/test.mid";
+
+    EXPECT_NO_THROW({
+        p2t::MidiFile file = p2t::MidiFile::load(testFile);
+
+        // One window every second.
+        p2t::Windowing windowing = p2t::Windowing(100, 10, 10.f);
+
+        const std::vector<std::vector<int>>& windowedNotes = file.getWindowedNotes(windowing).data;
+        const std::vector<int>& windowedMaxNotes = file.getWindowedHighestNotes(windowing).data;
+
+
+        EXPECT_SAME_MULTISET(windowedNotes[0], (std::vector<int>{60}));
+        EXPECT_EQ(windowedMaxNotes[0], 60);
+
+        EXPECT_SAME_MULTISET(windowedNotes[4], (std::vector<int>{60, 57}));
+        EXPECT_EQ(windowedMaxNotes[4], 60);
+
+        EXPECT_SAME_MULTISET(windowedNotes[28], (std::vector<int>{60, 65, 69, 53}));
+        EXPECT_EQ(windowedMaxNotes[28], 69);
+        });
+}
+
+TEST(MidiReaderTest, ReadWindowedPitches) {
+    std::string testFile = constants::TEST_DATA_DIR + "/test.mid";
+    constexpr float tuning = 442;
+
+    auto note2pitch = [](int note) {
+        return static_cast<float>(tuning * std::pow(2.0, (note - 69) / 12.0));
+    };
+
+    EXPECT_NO_THROW({
+        p2t::MidiFile file = p2t::MidiFile::load(testFile);
+
+        // One window every second.
+        p2t::Windowing windowing = p2t::Windowing(100, 10, 10.f);
+
+        const std::vector<std::vector<float> > &windowedPitches = file.getWindowedPitches(windowing, tuning).data;
+        const std::vector<float> &windowedMaxPitches = file.getWindowedHighestPitches(windowing, tuning).data;
+
+
+        EXPECT_SAME_MULTISET(windowedPitches[0], (std::vector<float>{note2pitch(60)}));
+        EXPECT_FLOAT_EQ(windowedMaxPitches[0], note2pitch(60));
+
+        EXPECT_SAME_MULTISET(windowedPitches[4], (std::vector<float>{note2pitch(60), note2pitch(57)}));
+        EXPECT_FLOAT_EQ(windowedMaxPitches[4], note2pitch(60));
+
+        EXPECT_SAME_MULTISET(windowedPitches[28], (std::vector<float>{note2pitch(60), note2pitch(65), note2pitch(69),
+            note2pitch(53)}));
+        EXPECT_FLOAT_EQ(windowedMaxPitches[28], note2pitch(69));
 
         });
 }
