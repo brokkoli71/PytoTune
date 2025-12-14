@@ -12,14 +12,16 @@
 namespace constants {
     const std::string TEST_DATA_DIR = "../tests/data";
 
-    const std::string SIN_FILE = TEST_DATA_DIR + "/sin_f440_i80_sr44100_af1.wav";
+    const std::string SIN_F440_I80_SR44100_AF1 = TEST_DATA_DIR + "/sin_f440_i80_sr44100_af1.wav";
     constexpr int SIN_FILE_NUM_SAMPLES = 44101;
 
-    const std::string SIN_AF3_FILE = TEST_DATA_DIR + "/sin_f440_i80_sr44100_af3.wav";
+    const std::string SIN_F440_I80_SR44100_AF3 = TEST_DATA_DIR + "/sin_f440_i80_sr44100_af3.wav";
     const std::string INVALID_FILE = TEST_DATA_DIR + "/invalid.wav";
 
-    const std::string PIANO_FILE = TEST_DATA_DIR + "/piano_f220_sr44100.wav";
-    const std::string STRINGS_FILE = TEST_DATA_DIR + "/strings_f440_sr44100.wav";
+    const std::string PIANO_F220_SR44100 = TEST_DATA_DIR + "/piano_f220_sr44100.wav";
+    const std::string STRINGS_F440_SR44100 = TEST_DATA_DIR + "/strings_f440_sr44100.wav";
+    const std::string VOICE_F400_SR4100 = TEST_DATA_DIR + "/voice_f440_sr44100.wav";
+    const std::string SIN_RAISE_FSTART200_FEND1000_I80_SR44100_AF1 = TEST_DATA_DIR + "/sin-raise_fstart200_fend1000_i80_sr44100_af1.wav";
 }
 
 

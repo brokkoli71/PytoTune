@@ -10,7 +10,7 @@
 
 TEST(PitchDetectionTest, DetectSineWavePitch) {
     EXPECT_NO_THROW({
-        const p2t::WavFile reader = p2t::WavFile::load(constants::SIN_FILE);
+        const p2t::WavFile reader = p2t::WavFile::load(constants::SIN_F440_I80_SR44100_AF1);
         const auto& data = reader.data();
         const int window_size = 2024;
         const int expected_windows = std::ceil(static_cast<float>(constants::SIN_FILE_NUM_SAMPLES)/
@@ -32,7 +32,7 @@ TEST(PitchDetectionTest, DetectSineWavePitch) {
 
 TEST(PitchDetectionTest, DetectSineWavePitchWithOverlap) {
     EXPECT_NO_THROW({
-        const p2t::WavFile reader = p2t::WavFile::load(constants::SIN_FILE);
+        const p2t::WavFile reader = p2t::WavFile::load(constants::SIN_F440_I80_SR44100_AF1);
         const auto& data = reader.data();
         const int window_size = 2024;
         const int window_overlap = 512;
@@ -53,8 +53,8 @@ TEST(PitchDetectionTest, DetectSineWavePitchWithOverlap) {
         });
 }
 
-TEST(PitchDetectionTest, DISABLED_DetectPianoPitch) {
-    std::string testFile = constants::PIANO_FILE;
+TEST(PitchDetectionTest, DetectPianoPitch) {
+    std::string testFile = constants::PIANO_F220_SR44100;
 
     EXPECT_NO_THROW({
         p2t::WavFile reader = p2t::WavFile::load(testFile);
@@ -62,21 +62,19 @@ TEST(PitchDetectionTest, DISABLED_DetectPianoPitch) {
 
         const int middle_C_freq = 261; // Frequency of Middle C (C4)
 
-        auto detection = p2t::YINPitchDetector(2024, 0).detect_pitch(&data, middle_C_freq/2, middle_C_freq, 0.f);
+        auto detection = p2t::YINPitchDetector(2048, 512).detect_pitch(&data, middle_C_freq/2, middle_C_freq, 0.f);
         EXPECT_GT(detection.pitch_values.size() , 0);
 
         for (const auto& pitch : detection.pitch_values)
         {
-        // std::cout << "Detected pitch: " << pitch << " Hz" << std::endl;
-        // std::cout << pitch << ", ";
         // Expect the detected pitch to be approximately 220 Hz
-        EXPECT_NEAR(pitch, 220.0f, 1.0f);
+        EXPECT_NEAR(pitch, 220.0f, 2.0f);
         }
         });
 }
 
-TEST(PitchDetectionTest, DISABLED_DetectStringsPitch) {
-    std::string testFile = constants::STRINGS_FILE;
+TEST(PitchDetectionTest, DetectStringsPitch) {
+    std::string testFile = constants::STRINGS_F440_SR44100;
 
     EXPECT_NO_THROW({
         p2t::WavFile reader = p2t::WavFile::load(testFile);
@@ -84,15 +82,33 @@ TEST(PitchDetectionTest, DISABLED_DetectStringsPitch) {
 
         const int middle_C_freq = 261; // Frequency of Middle C (C4)
 
-        auto detection = p2t::YINPitchDetector(2048, 0).detect_pitch(&data, middle_C_freq, middle_C_freq*2, 0.f);
+        auto detection = p2t::YINPitchDetector(2048, 500).detect_pitch(&data, middle_C_freq, middle_C_freq*2, 0.f);
         EXPECT_GT(detection.pitch_values.size() , 0);
 
         for (const auto& pitch : detection.pitch_values)
         {
-        std::cout << pitch << ", ";
-        // std::cout << "Detected pitch: " << pitch << " Hz" << std::endl;
-        // Expect the detected pitch to be approximately 220 Hz
-        EXPECT_NEAR(pitch, 440.0f, 1.0f);
+        // Expect the detected pitch to be approximately 440 Hz
+        EXPECT_NEAR(pitch, 440.0f, 2.0f);
+        }
+        });
+}
+
+
+TEST(PitchDetectionTest, DetectVoicePitch) {
+    std::string testFile = constants::VOICE_F400_SR4100;
+
+    EXPECT_NO_THROW({
+        p2t::WavFile reader = p2t::WavFile::load(testFile);
+        const auto& data = reader.data();
+
+        const int middle_C_freq = 261; // Frequency of Middle C (C4)
+
+        auto detection = p2t::YINPitchDetector(2048, 500).detect_pitch(&data, middle_C_freq, middle_C_freq*2, 0.f);
+        EXPECT_GT(detection.pitch_values.size() , 0);
+        for (const auto& pitch : detection.pitch_values)
+        {
+        // Expect the detected pitch to be approximately 440 Hz but allow more variance
+        EXPECT_NEAR(pitch, 440.0f, 10.f);
         }
         });
 }
