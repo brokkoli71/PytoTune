@@ -24,13 +24,13 @@ TEST(WavFileTest, DoesNotThrowOnValidFile) {
 TEST(WavFileTest, AudioFormatsPCMAndFloatAreEquivalent)
 {
     EXPECT_NO_THROW({
-        p2t::WavFile readerAF1 = p2t::WavFile::load(constants::SIN_FILE);
+        p2t::WavFile readerAF1 = p2t::WavFile::load(constants::SIN_F440_I80_SR44100_AF1);
         const auto& dataAF1 = readerAF1.data();
 
         EXPECT_EQ(dataAF1.sampleRate, 44100);
         EXPECT_EQ(dataAF1.numChannels, 1);
 
-        p2t::WavFile readerAF3 = p2t::WavFile::load(constants::SIN_AF3_FILE);
+        p2t::WavFile readerAF3 = p2t::WavFile::load(constants::SIN_F440_I80_SR44100_AF3);
         const auto& dataAF3 = readerAF3.data();
 
         EXPECT_EQ(dataAF3.sampleRate, 44100);
@@ -55,7 +55,7 @@ TEST(WavFileTest, ThrowsOnInvalidFile) {
 
 TEST(WavFileTest, CorrectDataSin) {
     EXPECT_NO_THROW({
-        p2t::WavFile reader = p2t::WavFile::load(constants::SIN_FILE);
+        p2t::WavFile reader = p2t::WavFile::load(constants::SIN_F440_I80_SR44100_AF1);
         const auto& data = reader.data();
         const float sin_freq = static_cast<float>(data.sampleRate) / 440;
         const float sin_amp = 0.8f;
@@ -66,5 +66,13 @@ TEST(WavFileTest, CorrectDataSin) {
             EXPECT_NEAR(data.samples[i], expected, 1e-3);
         }
 
+        });
+}
+
+TEST(WavFileTest, StereoAsMono) {
+    EXPECT_NO_THROW({
+        const p2t::WavFile reader = p2t::WavFile::load(constants::PIANO_F220_SR44100);
+        const auto& data = reader.data();
+        EXPECT_EQ(data.numChannels, 1);
         });
 }
