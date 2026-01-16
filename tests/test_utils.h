@@ -11,6 +11,7 @@
 
 namespace constants {
     const std::string TEST_DATA_DIR = "../tests/data";
+    const std::string TEST_OUTPUT_DIR = "../tests/testoutput";
 
     const std::string SIN_F440_I80_SR44100_AF1 = TEST_DATA_DIR + "/sin_f440_i80_sr44100_af1.wav";
     constexpr int SIN_FILE_NUM_SAMPLES = 44101;
