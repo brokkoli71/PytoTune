@@ -10,7 +10,7 @@
 
 
 namespace p2t {
-#define DEFAULT_WINDOWING Windowing(4096, 4096 / 4, 0)
+#define DEFAULT_WINDOWING Windowing(4096, 4096 / 4)
 
     class PitchCorrectionPipeline {
     public:
@@ -21,8 +21,7 @@ namespace p2t {
 
         WavFile roundToScale(const WavFile &src,
                              const Scale &scale,
-                             Windowing windowing = DEFAULT_WINDOWING,
-                             float tuning = DEFAULT_A4);
+                             Windowing windowing = DEFAULT_WINDOWING);
     };
 }
 

@@ -111,10 +111,11 @@ TEST(MidiReaderTest, ReadWindowedNotes) {
         p2t::MidiFile file = p2t::MidiFile::load(testFile);
 
         // One window every second.
-        p2t::Windowing windowing = p2t::Windowing(100, 10, 10.f);
+        p2t::Windowing windowing = p2t::Windowing(100, 10);
+        const float sampleRate = 10.f;
 
-        const std::vector<std::vector<int>>& windowedNotes = file.getWindowedNotes(windowing).data;
-        const std::vector<int>& windowedMaxNotes = file.getWindowedHighestNotes(windowing).data;
+        const std::vector<std::vector<int>>& windowedNotes = file.getWindowedNotes(windowing, sampleRate).data;
+        const std::vector<int>& windowedMaxNotes = file.getWindowedHighestNotes(windowing, sampleRate).data;
 
 
         EXPECT_SAME_MULTISET(windowedNotes[0], (std::vector<int>{60}));
@@ -140,10 +141,13 @@ TEST(MidiReaderTest, ReadWindowedPitches) {
         p2t::MidiFile file = p2t::MidiFile::load(testFile);
 
         // One window every second.
-        p2t::Windowing windowing = p2t::Windowing(100, 10, 10.f);
+        p2t::Windowing windowing = p2t::Windowing(100, 10);
+        const float sampleRate = 10.f;
 
-        const std::vector<std::vector<float> > &windowedPitches = file.getWindowedPitches(windowing, tuning).data;
-        const std::vector<float> &windowedMaxPitches = file.getWindowedHighestPitches(windowing, tuning).data;
+        const std::vector<std::vector<float> > &windowedPitches = file.getWindowedPitches(windowing, sampleRate,tuning).
+        data;
+        const std::vector<float> &windowedMaxPitches = file.getWindowedHighestPitches(windowing, sampleRate,tuning).data
+        ;
 
 
         EXPECT_SAME_MULTISET(windowedPitches[0], (std::vector<float>{note2pitch(60)}));

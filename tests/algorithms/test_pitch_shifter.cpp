@@ -52,7 +52,7 @@ TEST(TestPitchShifter, ResultEqualsReferenceCode) {
     p2t::WavFile readerAF1 = p2t::WavFile::load(testFile);
     auto &data = readerAF1.data();
 
-    p2t::PitchShifter ps({4096, 4096 / 4, static_cast<float>(data.sampleRate)});
+    p2t::PitchShifter ps({4096, 4096 / 4}, static_cast<float>(data.sampleRate));
     auto out1 = ps.run(data.samples, 0.9f);
 
     std::vector<float> out2(data.samples.size(), 0.0f);

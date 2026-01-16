@@ -17,12 +17,13 @@ TEST(PitchDetectionTest, DetectSineWavePitch) {
             window_size);
         const int middle_C_freq = 261; // Frequency of Middle C (C4)
 
-        const auto detection = p2t::YINPitchDetector(window_size, 0).detect_pitch(&data, middle_C_freq, middle_C_freq*4,
+        const auto detection = p2t::YINPitchDetector({window_size, window_size}).detect_pitch(data, middle_C_freq,
+            middle_C_freq*4,
             0.2f );
 
-        EXPECT_EQ(detection.pitch_values.size() , expected_windows);
+        EXPECT_EQ(detection.data.size() , expected_windows);
 
-        for (const auto& pitch : detection.pitch_values)
+        for (const auto& pitch : detection.data)
         {
         // Expect the detected pitch to be approximately 440 Hz
         EXPECT_NEAR(pitch, 440.0f, 0.1f);
@@ -40,12 +41,13 @@ TEST(PitchDetectionTest, DetectSineWavePitchWithOverlap) {
             (window_size-window_overlap));
         const int middle_C_freq = 261; // Frequency of Middle C (C4)
 
-        const auto detection = p2t::YINPitchDetector(window_size, window_overlap).detect_pitch(&data, middle_C_freq,
+        const auto detection = p2t::YINPitchDetector({window_size, window_size - window_overlap}).detect_pitch(data,
+            middle_C_freq,
             middle_C_freq*4, 0.2f );
 
-        EXPECT_EQ(detection.pitch_values.size() , expected_windows);
+        EXPECT_EQ(detection.data.size() , expected_windows);
 
-        for (const auto& pitch : detection.pitch_values)
+        for (const auto& pitch : detection.data)
         {
         // Expect the detected pitch to be approximately 440 Hz
         EXPECT_NEAR(pitch, 440.0f, 0.1f);
@@ -62,10 +64,11 @@ TEST(PitchDetectionTest, DetectPianoPitch) {
 
         const int middle_C_freq = 261; // Frequency of Middle C (C4)
 
-        auto detection = p2t::YINPitchDetector(2048, 512).detect_pitch(&data, middle_C_freq/2, middle_C_freq, 0.f);
-        EXPECT_GT(detection.pitch_values.size() , 0);
+        auto detection = p2t::YINPitchDetector({2048, 2048-512}).detect_pitch(data, middle_C_freq/2, middle_C_freq, 0.f
+        );
+        EXPECT_GT(detection.data.size() , 0);
 
-        for (const auto& pitch : detection.pitch_values)
+        for (const auto& pitch : detection.data)
         {
         // Expect the detected pitch to be approximately 220 Hz
         EXPECT_NEAR(pitch, 220.0f, 2.0f);
@@ -82,10 +85,11 @@ TEST(PitchDetectionTest, DetectStringsPitch) {
 
         const int middle_C_freq = 261; // Frequency of Middle C (C4)
 
-        auto detection = p2t::YINPitchDetector(2048, 500).detect_pitch(&data, middle_C_freq, middle_C_freq*2, 0.f);
-        EXPECT_GT(detection.pitch_values.size() , 0);
+        auto detection = p2t::YINPitchDetector({2048, 2048-500}).detect_pitch(data, middle_C_freq, middle_C_freq*2, 0.f
+        );
+        EXPECT_GT(detection.data.size() , 0);
 
-        for (const auto& pitch : detection.pitch_values)
+        for (const auto& pitch : detection.data)
         {
         // Expect the detected pitch to be approximately 440 Hz
         EXPECT_NEAR(pitch, 440.0f, 2.0f);
@@ -103,9 +107,10 @@ TEST(PitchDetectionTest, DetectVoicePitch) {
 
         const int middle_C_freq = 261; // Frequency of Middle C (C4)
 
-        auto detection = p2t::YINPitchDetector(2048, 500).detect_pitch(&data, middle_C_freq, middle_C_freq*2, 0.f);
-        EXPECT_GT(detection.pitch_values.size() , 0);
-        for (const auto& pitch : detection.pitch_values)
+        auto detection = p2t::YINPitchDetector({2048, 2048-500}).detect_pitch(data, middle_C_freq, middle_C_freq*2, 0.f
+        );
+        EXPECT_GT(detection.data.size() , 0);
+        for (const auto& pitch : detection.data)
         {
         // Expect the detected pitch to be approximately 440 Hz but allow more variance
         EXPECT_NEAR(pitch, 440.0f, 10.f);
