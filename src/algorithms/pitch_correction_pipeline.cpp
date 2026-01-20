@@ -46,7 +46,7 @@ namespace p2t {
         // TODO Fix the yin pitcher to use Windowing
         std::cout << "Run Yin Pitch Detector" << std::endl;
         YINPitchDetector ypd(windowing);
-        WindowedData<float> pitches = ypd.detect_pitch(src.data(), 20, 2000, 0.05f);
+        WindowedData<float> pitches = ypd.detect_pitch(src.data(), 20, 20000, 0.05f);
 
         std::cout << "Seek the target notes in the scale" << std::endl;
         std::vector<float> pitchCorrectionFactors(pitches.data.size());

@@ -144,10 +144,8 @@ TEST(MidiReaderTest, ReadWindowedPitches) {
         p2t::Windowing windowing = p2t::Windowing(100, 10);
         const float sampleRate = 10.f;
 
-        const std::vector<std::vector<float> > &windowedPitches = file.getWindowedPitches(windowing, sampleRate,tuning).
-        data;
-        const std::vector<float> &windowedMaxPitches = file.getWindowedHighestPitches(windowing, sampleRate,tuning).data
-        ;
+        const std::vector<std::vector<float> > &windowedPitches = file.getWindowedPitches(windowing, sampleRate,tuning).data;
+        const std::vector<float> &windowedMaxPitches = file.getWindowedHighestPitches(windowing, sampleRate,tuning).data;
 
 
         EXPECT_SAME_MULTISET(windowedPitches[0], (std::vector<float>{note2pitch(60)}));
