@@ -81,3 +81,7 @@ roundToScale(WavFile wavFile, Scale scale) {
     return WavFile(ps.process(wavFile, pitchCorrectionFactors));
 }
 ```
+
+### python library
+- pybind11 instead of cython and ctypes
+- ctypes would require a c interface

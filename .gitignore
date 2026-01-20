@@ -1,3 +1,5 @@
 .idea
 playground.cpp
 tests/testoutput
+!tests/testoutput/.gitkeep
+cmake-build-debug

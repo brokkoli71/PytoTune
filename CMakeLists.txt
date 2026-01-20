@@ -20,6 +20,8 @@ add_library(pytotune_core STATIC
         src/data-structures/windowing.cpp
 )
 
+set_target_properties(pytotune_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 target_include_directories(pytotune_core PUBLIC
         ${PROJECT_SOURCE_DIR}/include
 )
@@ -41,6 +43,17 @@ FetchContent_Declare(
 )
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
+
+# Pybind11
+FetchContent_Declare(
+        pybind11
+        URL https://github.com/pybind/pybind11/archive/v2.11.1.zip
+)
+FetchContent_MakeAvailable(pybind11)
+
+# Pybind11 module
+pybind11_add_module(pytotune src/python_bindings.cpp)
+target_link_libraries(pytotune PRIVATE pytotune_core)
 
 # Add the test executable
 add_executable(pytotune_tests tests/io/test_wav_file.cpp
