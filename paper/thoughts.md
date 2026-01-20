@@ -85,3 +85,6 @@ roundToScale(WavFile wavFile, Scale scale) {
 ### python library
 - pybind11 instead of cython and ctypes
 - ctypes would require a c interface
+
+- optimization flags:
+- -mavx2 -mfma instead of -march=native for better compatibility with different cpus (used in numpy aswell (TODO add reference))
