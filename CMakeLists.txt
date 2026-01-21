@@ -1,23 +1,15 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.9)
 project(PytoTune LANGUAGES CXX)
 
 # Compiler settings
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
-# GoogleTest
-include(FetchContent)
-FetchContent_Declare(
-        googletest
-        URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-)
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
+find_package(OpenMP REQUIRED)
 
 # Add the library (core DSP logic)
-add_library(pytotune_core
+add_library(pytotune_core STATIC
         src/io/wav_file.cpp
         src/data-structures/mode.cpp
         src/data-structures/scale.cpp
@@ -29,28 +21,59 @@ add_library(pytotune_core
         src/algorithms/pitch_correction_pipeline.cpp
 )
 
+set_target_properties(pytotune_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 target_include_directories(pytotune_core PUBLIC
         ${PROJECT_SOURCE_DIR}/include
 )
+target_link_libraries(pytotune_core PUBLIC OpenMP::OpenMP_CXX)
 
-# Add the test executable
-add_executable(tests tests/io/test_wav_file.cpp
+# GoogleTest
+include(FetchContent)
+FetchContent_Declare(
+        googletest
+        URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+# Pybind11
+FetchContent_Declare(
+        pybind11
+        URL https://github.com/pybind/pybind11/archive/v2.11.1.zip
+)
+FetchContent_MakeAvailable(pybind11)
+
+# Pybind11 module
+pybind11_add_module(pytotune src/python_bindings.cpp)
+target_link_libraries(pytotune PRIVATE pytotune_core)
+
+# Add aggressive optimization
+if(NOT MSVC)
+    # for UNIX
+    target_compile_options(pytotune PRIVATE -Ofast -mavx2 -mfma)
+else()
+    # for Windows
+    target_compile_options(pytotune PRIVATE /O2 /arch:AVX2)
+endif()
+
+# Testing Executable
+add_executable(pytotune_tests
+        tests/io/test_wav_file.cpp
         tests/test_utils.h
         tests/io/test_midi_file.cpp
         tests/data-structures/test_scale.cpp
-        src/algorithms/fft.cpp
         tests/algorithms/test_pitch_shifter.cpp
-        tests/data-structures/test_scale.cpp
         tests/algorithms/pitch_detection.cpp
         tests/algorithms/test_fft.cpp
-        src/data-structures/windowing.cpp
         tests/reference/pitch_shifter_reference.cpp
         tests/reference/pitch_shifter_reference.h
         src/algorithms/pitch_correction_pipeline.cpp
         tests/algorithms/test_pitch_correction_pipeline.cpp
 )
-target_link_libraries(tests PRIVATE pytotune_core gtest_main)
+target_link_libraries(pytotune_tests PRIVATE pytotune_core gtest_main)
 
 enable_testing()
 include(GoogleTest)
-gtest_discover_tests(tests)
+gtest_discover_tests(pytotune_tests)
