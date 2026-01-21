@@ -19,6 +19,7 @@ add_library(pytotune_core STATIC
         src/algorithms/pitch_shifter.cpp
         src/data-structures/windowing.cpp
         src/algorithms/pitch_correction_pipeline.cpp
+        src/api.cpp
 )
 
 set_target_properties(pytotune_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -69,8 +70,8 @@ add_executable(pytotune_tests
         tests/algorithms/test_fft.cpp
         tests/reference/pitch_shifter_reference.cpp
         tests/reference/pitch_shifter_reference.h
-        src/algorithms/pitch_correction_pipeline.cpp
         tests/algorithms/test_pitch_correction_pipeline.cpp
+        tests/test_api.cpp
 )
 target_link_libraries(pytotune_tests PRIVATE pytotune_core gtest_main)
 
