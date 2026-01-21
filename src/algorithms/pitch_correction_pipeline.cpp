@@ -19,7 +19,7 @@ namespace p2t {
         YINPitchDetector ypd(windowing);
         WindowedData<float> pitches = ypd.detect_pitch(src.data(), 20, 2000, 0.05f);
 
-        WindowedData<float> targetPitches = midiFile.getWindowedHighestPitches(windowing, 0, tuning);
+        WindowedData<float> targetPitches = midiFile.getWindowedHighestPitches(windowing, sampleRate, tuning);
 
         std::vector<float> pitchCorrectionFactors(pitches.data.size());
         for (int i = 0; i < pitches.data.size(); ++i) {
