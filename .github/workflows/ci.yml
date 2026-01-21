@@ -33,5 +33,4 @@ jobs:
     - name: Run GoogleTest tests
       run: |
         cd build
-        # Run all tests, with color output disabled (as in your log)
-        ./tests --gtest_color=no
+        ctest --output-on-failure

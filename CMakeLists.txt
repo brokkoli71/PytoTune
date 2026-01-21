@@ -20,17 +20,12 @@ add_library(pytotune_core STATIC
         src/data-structures/windowing.cpp
 )
 
+set_target_properties(pytotune_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 target_include_directories(pytotune_core PUBLIC
         ${PROJECT_SOURCE_DIR}/include
 )
 target_link_libraries(pytotune_core PUBLIC OpenMP::OpenMP_CXX)
-
-add_executable(pytotune_cli
-        src/main.cpp
-)
-target_compile_options(pytotune_cli PUBLIC -Ofast)
-target_link_libraries(pytotune_cli PUBLIC pytotune_core)
-
 
 # GoogleTest
 include(FetchContent)
@@ -42,13 +37,33 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-# Add the test executable
-add_executable(pytotune_tests tests/io/test_wav_file.cpp
+# Pybind11
+FetchContent_Declare(
+        pybind11
+        URL https://github.com/pybind/pybind11/archive/v2.11.1.zip
+)
+FetchContent_MakeAvailable(pybind11)
+
+# Pybind11 module
+pybind11_add_module(pytotune src/python_bindings.cpp)
+target_link_libraries(pytotune PRIVATE pytotune_core)
+
+# Add aggressive optimization
+if(NOT MSVC)
+    # for UNIX
+    target_compile_options(pytotune PRIVATE -Ofast -mavx2 -mfma)
+else()
+    # for Windows
+    target_compile_options(pytotune PRIVATE /O2 /arch:AVX2)
+endif()
+
+# Testing Executable
+add_executable(pytotune_tests
+        tests/io/test_wav_file.cpp
         tests/test_utils.h
         tests/io/test_midi_file.cpp
         tests/data-structures/test_scale.cpp
         tests/algorithms/test_pitch_shifter.cpp
-        tests/data-structures/test_scale.cpp
         tests/algorithms/pitch_detection.cpp
         tests/algorithms/test_fft.cpp
         tests/reference/pitch_shifter_reference.cpp
