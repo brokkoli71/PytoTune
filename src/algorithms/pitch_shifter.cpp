@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstring>
+#include <stdexcept>
 
 #include "pytotune/algorithms/fft.h"
 
@@ -14,6 +14,12 @@ namespace p2t {
     std::vector<float> PitchShifter::run(const std::vector<float> &samples,
                                          const WindowedData<float> &pitchFactors) const {
         const float maxPitchFactor = *std::ranges::max_element(pitchFactors.data);
+
+        if (std::isnan(maxPitchFactor) || maxPitchFactor <= 0.0f) {
+            throw std::invalid_argument("Pitch factors must be positive but got max factor: " +
+                                        std::to_string(maxPitchFactor));
+        }
+
         const int buffer_size = static_cast<int>(std::pow(2, std::ceil(std::log2(maxPitchFactor)))) * 2 * windowing.
                                 windowSize;
 
