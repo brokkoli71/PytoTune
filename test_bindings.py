@@ -31,6 +31,6 @@ def test_midi():
         print(f"Error: {e}")
 
 if __name__ == "__main__":
-    test_scale()
     test_midi()
+    test_scale()
 

@@ -1,7 +1,3 @@
-//
-// Created by Moritz Seppelt on 12.12.25.
-//
-
 #ifndef PYTOTUNE_PITCH_CORRECTION_PIPELINE_H
 #define PYTOTUNE_PITCH_CORRECTION_PIPELINE_H
 #include "pytotune/io/midi_file.h"

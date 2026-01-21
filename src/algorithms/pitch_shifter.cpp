@@ -1,6 +1,3 @@
-//
-// Created by Moritz Seppelt on 02.12.25.
-//
 #include "../../include/pytotune/algorithms/pitch_shifter.h"
 
 #include <algorithm>

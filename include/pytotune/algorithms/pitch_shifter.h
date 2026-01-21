@@ -1,5 +1,3 @@
-
-
 #ifndef PYTOTUNE_PITCHSHIFTER_H
 #define PYTOTUNE_PITCHSHIFTER_H
 #include <functional>

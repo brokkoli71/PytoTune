@@ -1,7 +1,3 @@
-//
-// Created by Moritz Seppelt on 14.11.25.
-//
-
 #include <gtest/gtest.h>
 
 #include <string>
