@@ -228,13 +228,13 @@ namespace p2t {
         return pitches;
     }
 
-    WindowedData<std::vector<int> > MidiFile::getWindowedNotes(const Windowing &windowing) const {
-        const int numWindows = static_cast<int>(this->lengthSeconds * windowing.sampleRate / windowing.stride);
+    WindowedData<std::vector<int> > MidiFile::getWindowedNotes(const Windowing &windowing, float sampleRate) const {
+        const int numWindows = static_cast<int>(this->lengthSeconds * sampleRate / windowing.stride);
         std::vector<std::vector<int> > result(numWindows);
 
         for (const NoteEvent &noteEvent: this->noteEvents) {
-            const int startIndex = static_cast<int>(noteEvent.start * windowing.sampleRate / windowing.stride);
-            const int endIndex = static_cast<int>(noteEvent.end * windowing.sampleRate / windowing.stride);
+            const int startIndex = static_cast<int>(noteEvent.start * sampleRate / windowing.stride);
+            const int endIndex = static_cast<int>(noteEvent.end * sampleRate / windowing.stride);
 
             for (int i = startIndex; i < endIndex; i++) {
                 result[i].push_back(noteEvent.note);
@@ -243,13 +243,14 @@ namespace p2t {
         return {windowing, result};
     }
 
-    WindowedData<int> MidiFile::getWindowedHighestNotes(const Windowing &windowing, int defaultNote) const {
-        const int numWindows = static_cast<int>(this->lengthSeconds * windowing.sampleRate / windowing.stride);
+    WindowedData<int> MidiFile::getWindowedHighestNotes(const Windowing &windowing, float sampleRate,
+                                                        int defaultNote) const {
+        const int numWindows = static_cast<int>(this->lengthSeconds * sampleRate / windowing.stride);
         std::vector<int> result(numWindows, -1);
 
         for (const NoteEvent &noteEvent: this->noteEvents) {
-            const int startIndex = static_cast<int>(noteEvent.start * windowing.sampleRate / windowing.stride);
-            const int endIndex = static_cast<int>(noteEvent.end * windowing.sampleRate / windowing.stride);
+            const int startIndex = static_cast<int>(noteEvent.start * sampleRate / windowing.stride);
+            const int endIndex = static_cast<int>(noteEvent.end * sampleRate / windowing.stride);
 
             for (int i = startIndex; i < endIndex; i++) {
                 result[i] = std::max(static_cast<int>(noteEvent.note), result[i]);
@@ -263,8 +264,9 @@ namespace p2t {
         return {windowing, result};
     }
 
-    WindowedData<std::vector<float> > MidiFile::getWindowedPitches(const Windowing &windowing, float tuning) const {
-        auto windowedNotes = getWindowedNotes(windowing);
+    WindowedData<std::vector<float> > MidiFile::getWindowedPitches(const Windowing &windowing, float sampleRate,
+                                                                   float tuning) const {
+        auto windowedNotes = getWindowedNotes(windowing, sampleRate);
         std::vector<std::vector<float> > result;
         result.reserve(windowedNotes.data.size());
 
@@ -281,9 +283,10 @@ namespace p2t {
     }
 
     WindowedData<float> MidiFile::getWindowedHighestPitches(const Windowing &windowing,
-                                                          float defaultPitch,
-                                                          float tuning) const {
-        auto windowedNotes = getWindowedHighestNotes(windowing, -1);
+                                                            float sampleRate,
+                                                            float defaultPitch,
+                                                            float tuning) const {
+        auto windowedNotes = getWindowedHighestNotes(windowing, sampleRate, -1);
         std::vector<float> result(windowedNotes.data.size());
 
         for (int i = 0; i < result.size(); i++) {

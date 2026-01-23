@@ -48,15 +48,17 @@ namespace p2t {
 
         std::vector<float> getActivePitchesAt(float time, float tuning = DEFAULT_A4) const;
 
-        WindowedData<std::vector<int> > getWindowedNotes(const Windowing &windowing) const;
+        WindowedData<std::vector<int> > getWindowedNotes(const Windowing &windowing, float sampleRate) const;
 
-        WindowedData<int> getWindowedHighestNotes(const Windowing &windowing, int defaultNote = 0) const;
+        WindowedData<int> getWindowedHighestNotes(const Windowing &windowing, float sampleRate,
+                                                  int defaultNote = 0) const;
 
-        WindowedData<std::vector<float> > getWindowedPitches(const Windowing &windowing,
+        WindowedData<std::vector<float> > getWindowedPitches(const Windowing &windowing, float sampleRate,
                                                              float tuning = DEFAULT_A4) const;
 
-        WindowedData<float> getWindowedHighestPitches(const Windowing &windowing, float defaultPitch = 0.0f,
-                                                    float tuning = DEFAULT_A4) const;
+        WindowedData<float> getWindowedHighestPitches(const Windowing &windowing, float sampleRate,
+                                                      float defaultPitch = 0.0f,
+                                                      float tuning = DEFAULT_A4) const;
 
         inline static float noteToPitch(int note, float tuning = DEFAULT_A4);
 

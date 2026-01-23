@@ -1,15 +1,13 @@
 #include "pytotune/data-structures/windowing.h"
 
 namespace p2t {
-    Windowing::Windowing(int windowSize, int stride, float sampleRate)
+    Windowing::Windowing(int windowSize, int stride)
         : windowSize(windowSize),
-          stride(stride),
-          sampleRate(sampleRate) {
+          stride(stride) {
     }
 
-    Windowing::Windowing(int windowSize, float overlapPercentage, float sampleRate)
+    Windowing::Windowing(int windowSize, float overlapPercentage)
         : windowSize(windowSize),
-          stride(static_cast<int>((1.0f - overlapPercentage) * static_cast<float>(windowSize))),
-          sampleRate(sampleRate) {
+          stride(static_cast<int>((1.0f - overlapPercentage) * static_cast<float>(windowSize))) {
     }
 }
