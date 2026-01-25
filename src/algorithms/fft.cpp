@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES // Ensure M_PI is defined on MSVC
 /****************************************************************************
 *
 * This code is inspired by Stephan M. Bernsee's smbPitchShift algorithm
@@ -104,4 +105,3 @@ namespace p2t {
         }
     }
 } // namespace BernseeFFT
-

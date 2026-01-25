@@ -31,12 +31,19 @@ jobs:
         echo "OpenMP_ROOT=$(brew --prefix libomp)" >> $GITHUB_ENV
     # For Windows we rely on the preinstalled Visual Studio toolchain; no extra install step needed
 
-    - name: Configure CMake (Linux/macOS)
-      if: matrix.os != 'windows-latest'
+    - name: Configure CMake (Linux)
+      if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir -p build
         cd build
         cmake -S .. -B . -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+    - name: Configure CMake (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        mkdir -p build
+        cd build
+        cmake -S .. -B . -G Ninja -DCMAKE_BUILD_TYPE=Release -DOpenMP_ROOT=$(brew --prefix libomp)
 
     - name: Configure CMake (Windows)
       if: matrix.os == 'windows-latest'

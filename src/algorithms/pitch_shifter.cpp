@@ -1,8 +1,11 @@
+#define _USE_MATH_DEFINES // Ensure M_PI is defined on MSVC
+
 #include "../../include/pytotune/algorithms/pitch_shifter.h"
 
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
+#include <string>
 
 #include "pytotune/algorithms/fft.h"
 
