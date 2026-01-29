@@ -81,7 +81,7 @@ add_executable(pytotune_tests
         tests/io/test_midi_file.cpp
         tests/data-structures/test_scale.cpp
         tests/algorithms/test_pitch_shifter.cpp
-        tests/algorithms/pitch_detection.cpp
+        tests/algorithms/test_pitch_detection.cpp
         tests/algorithms/test_fft.cpp
         tests/reference/pitch_shifter_reference.cpp
         tests/reference/pitch_shifter_reference.h
