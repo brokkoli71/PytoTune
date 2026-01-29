@@ -8,6 +8,6 @@ namespace p2t {
 
     Windowing::Windowing(int windowSize, float overlapPercentage)
         : windowSize(windowSize),
-          stride(static_cast<int>((1.0f - overlapPercentage) * static_cast<float>(windowSize))) {
+          stride(windowSize - static_cast<int>(overlapPercentage * static_cast<float>(windowSize))) {
     }
 }

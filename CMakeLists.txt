@@ -87,6 +87,7 @@ add_executable(pytotune_tests
         tests/reference/pitch_shifter_reference.h
         tests/algorithms/test_pitch_correction_pipeline.cpp
         tests/test_api.cpp
+        tests/data-structures/test_windowing.cpp
 )
 target_link_libraries(pytotune_tests PRIVATE pytotune_core gtest_main)
 
