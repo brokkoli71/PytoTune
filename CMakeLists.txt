@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.9)
 project(PytoTune LANGUAGES CXX)
 
+# Add Math Definitions for Windows
+if (MSVC)
+    add_compile_definitions(_USE_MATH_DEFINES)
+endif ()
+
 # Compiler settings
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
