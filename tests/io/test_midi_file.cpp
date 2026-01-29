@@ -67,7 +67,8 @@ TEST(MidiReaderTest, ReadsNotesCorrectly) {
     EXPECT_SAME_MULTISET(file.getActiveNotesAt(20), (std::vector<int>{60, 60, 57}));  // T1: C4. T2: C4, A3
     EXPECT_SAME_MULTISET(file.getActiveNotesAt(21), (std::vector<int>{64, 64, 57}));  // T1: E4. T2: E4, A3
     EXPECT_SAME_MULTISET(file.getActiveNotesAt(22), (std::vector<int>{67, 67, 57}));  // T1: G4. T2: G4, A3
-    // EXPECT_SAME_MULTISET(file.getActiveNotesAt(23), (std::vector<int>{71, 71, 57}));  // T1: B4. T2: B4, A3. TODO FIX??
+    EXPECT_SAME_MULTISET(file.getActiveNotesAtDEBUG(23,true), (std::vector<int>{71, 71, 57}));  // T1: B4. T2: B4, A3. TODO FIX??
+    EXPECT_SAME_MULTISET(file.getActiveNotesAtDEBUG(23,false), (std::vector<int>{71, 71, 57}));  // T1: B4. T2: B4, A3. TODO FIX??
 
     // Tets different melodies in the tracks
     // Bar 9, 10: BPM = 120, Track 1: Cmaj7 downwards slow, Track2: Just like Bar 3,4

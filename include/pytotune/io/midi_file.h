@@ -46,6 +46,8 @@ namespace p2t {
         /// the globally-merged timeline.
         std::vector<int> getActiveNotesAt(float time) const;
 
+        std::vector<int> getActiveNotesAtDEBUG(float time, bool early_return) const;
+
         std::vector<float> getActivePitchesAt(float time, float tuning = DEFAULT_A4) const;
 
         WindowedData<std::vector<int> > getWindowedNotes(const Windowing &windowing, float sampleRate) const;

@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <iostream>
 #include <ranges>
 #include <stdexcept>
 
@@ -211,6 +212,23 @@ namespace p2t {
 
             // Exit early because it is sorted by the start time
             if (n.start > time)
+                return result;
+        }
+
+        return result;
+    }
+
+    std::vector<int> MidiFile::getActiveNotesAtDEBUG(const float time, bool early_return) const {
+        if (time > lengthSeconds || time < 0) return {};
+
+        std::vector<int> result;
+        for (const auto &n: noteEvents) {
+            std::cout << n.start << " - " << n.end << " : " << (int) n.note << std::endl;
+            if (n.start <= time && n.end > time)
+                result.push_back(n.note);
+
+            // Exit early because it is sorted by the start time
+            if (n.start > time && early_return)
                 return result;
         }
 
