@@ -6,6 +6,7 @@ sys.path.append(os.path.join(os.getcwd(), 'cmake-build-debug'))
 
 import pytotune
 
+
 def test_scale():
     print("Testing scale tuning...")
     wav_path = "tests/data/voice_f440_sr44100.wav"
@@ -13,10 +14,12 @@ def test_scale():
 
     # Tuning A4 to 440Hz, Scale C Major
     try:
-        pytotune.tune_to_scale(wav_path, "C major", 440.0, out_path)
+        scale = pytotune.Scale.from_name("C major")
+        pytotune.tune_to_scale(wav_path, scale, out_path)
         print(f"Success! Output saved to {out_path}")
     except Exception as e:
         print(f"Error: {e}")
+
 
 def test_midi():
     print("\nTesting midi tuning...")
@@ -30,7 +33,7 @@ def test_midi():
     except Exception as e:
         print(f"Error: {e}")
 
+
 if __name__ == "__main__":
     test_midi()
     test_scale()
-

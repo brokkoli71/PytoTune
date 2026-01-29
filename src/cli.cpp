@@ -1,7 +1,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
 #include "pytotune/api.h"
+#include "pytotune/data-structures/scale.h"
 
 void print_usage() {
     std::cout << "Usage:" << std::endl;
@@ -9,7 +11,7 @@ void print_usage() {
     std::cout << "  pytotune-cli scale <wav_input> <scale_name> <tuning> <wav_output>" << std::endl;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     if (argc < 2) {
         print_usage();
         return 1;
@@ -37,14 +39,15 @@ int main(int argc, char* argv[]) {
             std::string wav_input = argv[2];
             std::string scale_name = argv[3];
             float tuning = std::stof(argv[4]);
+            p2t::Scale scale = p2t::Scale::fromName(scale_name, tuning);
             std::string wav_output = argv[5];
-            p2t::tune_to_scale(wav_input, scale_name, tuning, wav_output);
+            p2t::tune_to_scale(wav_input, scale, wav_output);
         } else {
             std::cerr << "Error: Unknown mode '" << mode << "'." << std::endl;
             print_usage();
             return 1;
         }
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     }

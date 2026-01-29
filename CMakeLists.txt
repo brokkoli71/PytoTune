@@ -55,15 +55,19 @@ add_executable(pytotune_cli src/cli.cpp)
 target_link_libraries(pytotune_cli PRIVATE pytotune_core)
 
 # Add aggressive optimization
-if(NOT MSVC)
-    # for UNIX
-    target_compile_options(pytotune PRIVATE -Ofast -mavx2 -mfma)
-    target_compile_options(pytotune_cli PRIVATE -Ofast -mavx2 -mfma)
-else()
-    # for Windows
-    target_compile_options(pytotune PRIVATE /O2 /arch:AVX2)
-    target_compile_options(pytotune_cli PRIVATE /O2 /arch:AVX2)
-endif()
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64")
+    include(CheckCXXCompilerFlag)
+    check_cxx_compiler_flag("-mavx2" HAS_AVX2)
+    check_cxx_compiler_flag("-mfma" HAS_FMA)
+
+    if (HAS_AVX2 AND HAS_FMA)
+        target_compile_options(pytotune PRIVATE -mavx2 -mfma)
+        target_compile_options(pytotune_cli PRIVATE -Ofast -mavx2 -mfma)
+    endif ()
+elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
+    # Apple Silicon / ARM Linux
+    # rely on auto-vectorization
+endif ()
 
 # Testing Executable
 add_executable(pytotune_tests
