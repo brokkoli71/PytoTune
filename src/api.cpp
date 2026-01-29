@@ -1,3 +1,4 @@
+#include "pytotune/api.h"
 #include "pytotune/io/wav_file.h"
 #include "pytotune/io/midi_file.h"
 #include "pytotune/data-structures/scale.h"

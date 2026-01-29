@@ -50,13 +50,19 @@ FetchContent_MakeAvailable(pybind11)
 pybind11_add_module(pytotune src/python_bindings.cpp)
 target_link_libraries(pytotune PRIVATE pytotune_core)
 
+# CLI Executable
+add_executable(pytotune_cli src/cli.cpp)
+target_link_libraries(pytotune_cli PRIVATE pytotune_core)
+
 # Add aggressive optimization
 if(NOT MSVC)
     # for UNIX
     target_compile_options(pytotune PRIVATE -Ofast -mavx2 -mfma)
+    target_compile_options(pytotune_cli PRIVATE -Ofast -mavx2 -mfma)
 else()
     # for Windows
     target_compile_options(pytotune PRIVATE /O2 /arch:AVX2)
+    target_compile_options(pytotune_cli PRIVATE /O2 /arch:AVX2)
 endif()
 
 # Testing Executable

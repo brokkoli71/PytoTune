@@ -2,8 +2,7 @@
 #include <pybind11/stl.h>
 #include <iostream>
 
-#include "pytotune/io/wav_file.h"
-#include "../src/api.cpp"
+#include "pytotune/api.h"
 
 namespace py = pybind11;
 

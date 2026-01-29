@@ -3,3 +3,4 @@ playground.cpp
 tests/testoutput
 !tests/testoutput/.gitkeep
 cmake-build-debug
+cmake-build-release

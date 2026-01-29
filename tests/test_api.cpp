@@ -6,7 +6,7 @@
 
 #include "test_utils.h"
 #include "pytotune/io/midi_file.h"
-#include "../src/api.cpp"
+#include "pytotune/api.h"
 
 TEST(PythonBindingsTest, TuneToMidi) {
     std::string midiFile = constants::TEST_DATA_DIR + "/test.mid";
