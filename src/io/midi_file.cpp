@@ -136,16 +136,25 @@ namespace p2t {
             if (a.absTicks != b.absTicks)
                 return a.absTicks < b.absTicks;
 
-            // For same absTicks, NoteOff comes before NoteOn
-            if ((a.type == EventType::NoteOff) && (b.type == EventType::NoteOn))
-                return true;
-            if ((a.type == EventType::NoteOn) && (b.type == EventType::NoteOff))
-                return false;
+            // For same absTicks, NoteOff comes before NoteOn, then the rest
+            auto getPriority = [](EventType t) {
+                if (t == EventType::NoteOff) return 0;
+                if (t == EventType::NoteOn) return 1;
+                return 2;
+            };
 
-            // fallback to original order for other cases
+            int pA = getPriority(a.type);
+            int pB = getPriority(b.type);
+
+            if (pA != pB)
+                return pA < pB;
+
+            // Deterministic tie-breaker:
+            if (a.track != b.track)
+                return a.track < b.track;
+
             return false;
         });
-
         // --- PASS 2: Sort by absTicks and convert to seconds ---
         // activeNotes[track][noteValue] = noteOnEventTime
         std::unordered_map<uint16_t, std::unordered_map<uint8_t, float> > activeNotes;
