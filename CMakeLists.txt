@@ -66,14 +66,38 @@ if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64")
     check_cxx_compiler_flag("-mfma" HAS_FMA)
 
     if (HAS_AVX2 AND HAS_FMA)
-        target_compile_options(pytotune PRIVATE -mavx2 -mfma)
-        target_compile_options(pytotune_cli PRIVATE -Ofast -mavx2 -mfma)
+        set(AVX_FLAGS -mavx2 -mfma)
+
+        target_compile_options(pytotune_core PRIVATE
+                # Release: AVX + Optimizations
+                $<$<CONFIG:Release>:${AVX_FLAGS}>
+                $<$<CONFIG:Release>:-Ofast>
+
+                # RelWithDebInfo: AVX + Optimizations + Debug Symbols
+                $<$<CONFIG:RelWithDebInfo>:${AVX_FLAGS}>
+                $<$<CONFIG:RelWithDebInfo>:-Ofast>
+                $<$<CONFIG:RelWithDebInfo>:-g>
+
+                # Debug: No AVX, No Optimizations (Intrinsics disabled)
+                $<$<CONFIG:Debug>:-O0>
+        )
     endif ()
 elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
     # Apple Silicon / ARM Linux
-    # rely on auto-vectorization
-endif ()
+    # NEON is enabled by default on AArch64
 
+    target_compile_options(pytotune_core PRIVATE
+            # Release: Max speed
+            $<$<CONFIG:Release>:-Ofast>
+
+            # RelWithDebInfo: Speed + Symbols
+            $<$<CONFIG:RelWithDebInfo>:-Ofast>
+            $<$<CONFIG:RelWithDebInfo>:-g>
+
+            # Debug: No optimization
+            $<$<CONFIG:Debug>:-O0>
+    )
+endif ()
 # Testing Executable
 add_executable(pytotune_tests
         tests/io/test_wav_file.cpp

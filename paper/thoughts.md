@@ -88,3 +88,7 @@ roundToScale(WavFile wavFile, Scale scale) {
 
 - optimization flags:
 - -mavx2 -mfma instead of -march=native for better compatibility with different cpus (used in numpy aswell (TODO add reference))
+
+
+### benchmarking TODO
+ - https://github.com/viktorleis/perfevent
