@@ -15,6 +15,7 @@ namespace p2t {
 
         std::vector<float> pitchValues;
 
+        // todo: parallelize this loop (mutex for pitchValues or preallocate and write to index)
         for (int i = 0; i < audio_buffer.samples.size(); i += this->windowing.stride) {
             // Process each window
             const int window_end = std::min(i + this->windowing.windowSize, (int) audio_buffer.samples.size());

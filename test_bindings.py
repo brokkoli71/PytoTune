@@ -2,7 +2,7 @@ import sys
 import os
 
 # Add build directory to path so we can import the module
-sys.path.append(os.path.join(os.getcwd(), 'cmake-build-debug'))
+sys.path.append(os.path.join(os.getcwd(), 'cmake-build-release'))
 
 import pytotune
 
