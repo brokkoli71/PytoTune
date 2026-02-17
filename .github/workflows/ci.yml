@@ -76,3 +76,7 @@ jobs:
         cd build
         ctest -C Release --output-on-failure
       shell: pwsh
+
+    - name: Run Python tests
+      run: |
+        python test_bindings.py
