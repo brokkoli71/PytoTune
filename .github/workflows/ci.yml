@@ -76,3 +76,15 @@ jobs:
         cd build
         ctest -C Release --output-on-failure
       shell: pwsh
+
+    - name: Run Python tests (Linux/macOS)
+      if: matrix.os != 'windows-latest'
+      run: |
+        export PYTHONPATH=$PYTHONPATH:$(pwd)/build
+        python test_bindings.py
+
+    - name: Run Python tests (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        $env:PYTHONPATH = "$env:PYTHONPATH;$(Get-Location)\build\Release"
+        python test_bindings.py
