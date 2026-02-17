@@ -47,6 +47,10 @@ namespace p2t {
      *   sample0_chan0, sample0_chan1, ..., sample1_chan0, sample1_chan1, ...
      */
     std::vector<float> samples; // interleaved if stereo
+
+    WavData() = default;
+    WavData(uint32_t sr, uint16_t ch, std::vector<float> samp) 
+      : sampleRate(sr), numChannels(ch), samples(std::move(samp)) {}
   };
 
   /**

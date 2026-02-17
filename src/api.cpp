@@ -31,4 +31,22 @@ namespace p2t {
         WavFile outWav = pipeline.roundToScale(wav, scale, windowing);
         outWav.store(out_path);
     }
+
+    std::vector<float> tune_array_to_scale(const std::vector<float> &samples, unsigned int sample_rate, const Scale &scale) {
+        int windowSize = 4096;
+        int stride = 1024;
+        Windowing windowing(windowSize, stride);
+
+        PitchCorrectionPipeline pipeline;
+        return pipeline.processArrayToScale(samples, sample_rate, scale, windowing);
+    }
+
+    std::vector<float> tune_array_to_note(const std::vector<float> &samples, unsigned int sample_rate, float target_note) {
+        int windowSize = 4096;
+        int stride = 1024;
+        Windowing windowing(windowSize, stride);
+
+        PitchCorrectionPipeline pipeline;
+        return pipeline.processArrayToNote(samples, sample_rate, target_note, windowing);
+    }
 } // namespace p2t

@@ -1,0 +1,74 @@
+Add live mode for real-time pitch correction
+
+This commit adds comprehensive support for real-time audio processing,
+enabling live microphone input with pitch correction and direct playback.
+
+## New Features
+
+### C++ API Extensions
+- Add `tune_array_to_scale()` function for array-based scale correction
+- Add `tune_array_to_note()` function for array-based single-note correction
+- Add `processArrayToScale()` and `processArrayToNote()` methods to PitchCorrectionPipeline
+- Add WavData constructor for easier initialization from raw samples
+
+### Python Bindings
+- Add `pytotune.tune_array_to_scale()` with NumPy array support
+- Add `pytotune.tune_array_to_note()` with NumPy array support
+- Enable efficient zero-copy array transfer between Python and C++
+
+### Live Streaming Application
+- Add `live_autotune.py` - Full-featured real-time autotune application
+  * Multi-threaded processing (separate I/O and DSP threads)
+  * Queue-based buffering for smooth audio flow
+  * ~100-115ms total latency with default settings
+  * Command-line interface with scale/note modes
+  * Audio device selection support
+
+### Documentation & Examples
+- Add `LIVE_MODE.md` - Complete user guide and API reference
+- Add `IMPLEMENTATION_SUMMARY.md` - Technical implementation details
+- Add `QUICK_REFERENCE.md` - Quick reference card
+- Add `example_array_api.py` - Comprehensive API usage examples
+- Add `setup_live.sh` - Automated setup script
+- Add `requirements_live.txt` - Python dependencies
+- Update `README.md` with live mode information
+
+### Testing
+- Update `test_bindings.py` with array-based function tests
+- Add tests for both scale and note correction modes
+
+## Technical Details
+
+- Window-wise processing enables streaming with configurable block size
+- YIN pitch detection + phase vocoder pitch shifting
+- Default: 4096 sample blocks @ 44.1kHz = ~93ms + ~5-20ms processing
+- Supports any audio input device via sounddevice library
+
+## Files Modified
+- include/pytotune/api.h
+- src/api.cpp
+- include/pytotune/algorithms/pitch_correction_pipeline.h
+- src/algorithms/pitch_correction_pipeline.cpp
+- include/pytotune/io/wav_file.h
+- src/python_bindings.cpp
+- test_bindings.py
+- README.md
+
+## Files Added
+- live_autotune.py
+- example_array_api.py
+- LIVE_MODE.md
+- IMPLEMENTATION_SUMMARY.md
+- QUICK_REFERENCE.md
+- requirements_live.txt
+- setup_live.sh
+
+## Usage Examples
+
+Live mode:
+  python live_autotune.py --scale "C major"
+  python live_autotune.py --note 440.0
+
+Array API:
+  corrected = pytotune.tune_array_to_scale(samples, 44100, scale)
+  corrected = pytotune.tune_array_to_note(samples, 44100, 440.0)

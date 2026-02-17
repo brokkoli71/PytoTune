@@ -18,6 +18,16 @@ namespace p2t {
         WavFile roundToScale(const WavFile &src,
                              const Scale &scale,
                              Windowing windowing = DEFAULT_WINDOWING);
+
+        std::vector<float> processArrayToScale(const std::vector<float> &samples,
+                                                unsigned int sample_rate,
+                                                const Scale &scale,
+                                                Windowing windowing = DEFAULT_WINDOWING);
+
+        std::vector<float> processArrayToNote(const std::vector<float> &samples,
+                                               unsigned int sample_rate,
+                                               float target_note,
+                                               Windowing windowing = DEFAULT_WINDOWING);
     };
 }
 

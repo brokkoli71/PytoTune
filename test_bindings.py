@@ -5,6 +5,7 @@ import os
 sys.path.append(os.path.join(os.getcwd(), 'cmake-build-release'))
 
 import pytotune
+import numpy as np
 
 
 def test_scale():
@@ -34,6 +35,58 @@ def test_midi():
         print(f"Error: {e}")
 
 
+def test_array_to_scale():
+    print("\nTesting array-based scale tuning...")
+    try:
+        # Generate a simple test signal: 440Hz sine wave
+        sample_rate = 44100
+        duration = 0.5  # seconds
+        frequency = 440.0
+        
+        t = np.linspace(0, duration, int(sample_rate * duration), dtype=np.float32)
+        samples = np.sin(2 * np.pi * frequency * t).astype(np.float32)
+        
+        # Create scale
+        scale = pytotune.Scale.from_name("C major")
+        
+        # Process array
+        result = pytotune.tune_array_to_scale(samples, sample_rate, scale)
+        
+        print(f"Success! Processed {len(samples)} samples -> {len(result)} samples")
+        print(f"Input shape: {samples.shape}, Output shape: {result.shape}")
+    except Exception as e:
+        print(f"Error: {e}")
+        import traceback
+        traceback.print_exc()
+
+
+def test_array_to_note():
+    print("\nTesting array-based note tuning...")
+    try:
+        # Generate a simple test signal: 440Hz sine wave
+        sample_rate = 44100
+        duration = 0.5  # seconds
+        frequency = 440.0
+        
+        t = np.linspace(0, duration, int(sample_rate * duration), dtype=np.float32)
+        samples = np.sin(2 * np.pi * frequency * t).astype(np.float32)
+        
+        # Tune to C4 (261.63 Hz)
+        target_note = 261.63
+        
+        # Process array
+        result = pytotune.tune_array_to_note(samples, sample_rate, target_note)
+        
+        print(f"Success! Processed {len(samples)} samples -> {len(result)} samples")
+        print(f"Input shape: {samples.shape}, Output shape: {result.shape}")
+    except Exception as e:
+        print(f"Error: {e}")
+        import traceback
+        traceback.print_exc()
+
+
 if __name__ == "__main__":
     test_midi()
     test_scale()
+    test_array_to_scale()
+    test_array_to_note()

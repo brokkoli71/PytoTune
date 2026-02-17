@@ -60,4 +60,57 @@ namespace p2t {
 
         return WavFile(WavData(static_cast<unsigned int>(sampleRate), 1, outValues));
     }
+
+    std::vector<float> PitchCorrectionPipeline::processArrayToScale(const std::vector<float> &samples,
+                                                                      unsigned int sample_rate,
+                                                                      const Scale &scale,
+                                                                      Windowing windowing) {
+        const float sampleRate = static_cast<float>(sample_rate);
+        
+        // Create WavData - make a copy since we need to keep the original samples
+        WavData wavData;
+        wavData.sampleRate = sample_rate;
+        wavData.numChannels = 1;
+        wavData.samples = samples;  // Copy the samples
+        
+        YINPitchDetector ypd(windowing);
+        WindowedData<float> pitches = ypd.detect_pitch(wavData, 20, 2000, 0.05f);
+
+        std::vector<float> pitchCorrectionFactors(pitches.data.size());
+        for (int i = 0; i < pitches.data.size(); ++i) {
+            pitchCorrectionFactors[i] = scale.getClosestPitchInScale(pitches.data[i]) / pitches.data[i];
+        }
+
+        PitchShifter ps(windowing, sampleRate);
+        std::vector<float> outValues = ps.run(samples, {windowing, pitchCorrectionFactors});
+        
+        return outValues;
+    }
+
+    std::vector<float> PitchCorrectionPipeline::processArrayToNote(const std::vector<float> &samples,
+                                                                     unsigned int sample_rate,
+                                                                     float target_note,
+                                                                     Windowing windowing) {
+        const float sampleRate = static_cast<float>(sample_rate);
+        
+        // Create WavData - make a copy since we need to keep the original samples
+        WavData wavData;
+        wavData.sampleRate = sample_rate;
+        wavData.numChannels = 1;
+        wavData.samples = samples;  // Copy the samples
+        
+        YINPitchDetector ypd(windowing);
+        WindowedData<float> pitches = ypd.detect_pitch(wavData, 20, 2000, 0.05f);
+
+        std::vector<float> pitchCorrectionFactors(pitches.data.size());
+        for (int i = 0; i < pitches.data.size(); ++i) {
+            pitchCorrectionFactors[i] = target_note / pitches.data[i];
+        }
+
+        PitchShifter ps(windowing, sampleRate);
+        std::vector<float> outValues = ps.run(samples, {windowing, pitchCorrectionFactors});
+        
+        // Don't normalize for live mode - keep original amplitude
+        return outValues;
+    }
 }

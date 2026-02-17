@@ -4,3 +4,4 @@ tests/testoutput
 !tests/testoutput/.gitkeep
 cmake-build-debug
 cmake-build-release
+my_result_dir

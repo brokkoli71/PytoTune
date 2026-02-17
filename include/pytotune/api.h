@@ -2,6 +2,7 @@
 #define PYTOTUNE_API_H
 
 #include <string>
+#include <vector>
 
 #include "data-structures/scale.h"
 
@@ -21,6 +22,24 @@ namespace p2t {
      * @param out_path Path to the output wav file
      */
     void tune_to_scale(const std::string &wav_path, const Scale &scale, const std::string &out_path);
+
+    /**
+     * Tune raw audio samples to a musical scale (live mode).
+     * @param samples Input audio samples as floats in [-1.0, 1.0]
+     * @param sample_rate Sample rate in Hz
+     * @param scale The scale object
+     * @return Processed audio samples
+     */
+    std::vector<float> tune_array_to_scale(const std::vector<float> &samples, unsigned int sample_rate, const Scale &scale);
+
+    /**
+     * Tune raw audio samples to a target note frequency (live mode).
+     * @param samples Input audio samples as floats in [-1.0, 1.0]
+     * @param sample_rate Sample rate in Hz
+     * @param target_note Target note frequency in Hz
+     * @return Processed audio samples
+     */
+    std::vector<float> tune_array_to_note(const std::vector<float> &samples, unsigned int sample_rate, float target_note);
 } // namespace p2t
 
 #endif // PYTOTUNE_API_H
