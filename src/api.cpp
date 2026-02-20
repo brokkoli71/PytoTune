@@ -10,8 +10,8 @@ namespace p2t {
         auto wav = WavFile::load(wav_path);
         auto midi = MidiFile::load(midi_path);
 
-        int windowSize = 4096;
-        int stride = 1024;
+        int windowSize = 8192;
+        int stride = 2048;
         Windowing windowing(windowSize, stride);
 
         PitchCorrectionPipeline pipeline;
@@ -23,8 +23,8 @@ namespace p2t {
                        const std::string &out_path) {
         auto wav = WavFile::load(wav_path);
 
-        int windowSize = 4096;
-        int stride = 1024;
+        int windowSize = 8192;
+        int stride = 2048;
         Windowing windowing(windowSize, stride);
 
         PitchCorrectionPipeline pipeline;
@@ -33,8 +33,8 @@ namespace p2t {
     }
 
     std::vector<float> tune_array_to_scale(const std::vector<float> &samples, unsigned int sample_rate, const Scale &scale) {
-        int windowSize = 4096;
-        int stride = 1024;
+        int windowSize = 8192;
+        int stride = 2048;
         Windowing windowing(windowSize, stride);
 
         PitchCorrectionPipeline pipeline;
@@ -42,8 +42,8 @@ namespace p2t {
     }
 
     std::vector<float> tune_array_to_note(const std::vector<float> &samples, unsigned int sample_rate, float target_note) {
-        int windowSize = 4096;
-        int stride = 1024;
+        int windowSize = 8192;
+        int stride = 2048;
         Windowing windowing(windowSize, stride);
 
         PitchCorrectionPipeline pipeline;

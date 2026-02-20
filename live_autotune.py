@@ -29,7 +29,7 @@ import pytotune
 
 
 class LiveAutotune:
-    def __init__(self, sample_rate=44100, block_size=4096, mode='scale', scale_name='C major', target_note=440.0):
+    def __init__(self, sample_rate=44100, block_size=44100, mode='scale', scale_name='C major', target_note=440.0):
         """
         Initialize the live autotune processor.
         
@@ -189,8 +189,8 @@ def main():
     parser.add_argument(
         '--block-size',
         type=int,
-        default=4096,
-        help='Processing block size in samples (default: 4096). Smaller = lower latency but less stable.'
+        default=44100,
+        help='Processing block size in samples (default: 44100 = 1 second). Smaller = lower latency but may not work well.'
     )
     parser.add_argument(
         '--list-devices',

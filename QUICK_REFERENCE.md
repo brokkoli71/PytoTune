@@ -18,17 +18,17 @@ pip install -r requirements_live.txt
 ### Basic Commands
 
 ```bash
-# Scale mode (most common)
-python live_autotune.py --scale "C major"
+# Simple version (recommended)
+python simple_live.py                    # C major (default)
+python simple_live.py --scale "A minor"  # Different scale
+python simple_live.py --note 440.0       # Single note mode
 
-# Note mode (single target frequency)
+# Full-featured version
+python live_autotune.py --scale "C major"
 python live_autotune.py --note 440.0
 
 # List audio devices
 python live_autotune.py --list-devices
-
-# Use specific device
-python live_autotune.py --scale "C major" --device 2
 ```
 
 ### Common Scales
@@ -42,14 +42,14 @@ python live_autotune.py --scale "C major" --device 2
 --scale "D minor"
 ```
 
-### Latency Tuning
+### Block Size Adjustment
 
 ```bash
-# Lower latency (faster response, less stable)
-python live_autotune.py --scale "C major" --block-size 2048
+# Default (1 second latency, most reliable)
+python simple_live.py --block-size 44100
 
-# Higher latency (slower response, more stable)
-python live_autotune.py --scale "C major" --block-size 8192
+# Lower latency (0.5 seconds, may be less reliable)
+python simple_live.py --block-size 22050
 ```
 
 ## Python API
@@ -105,23 +105,20 @@ python example_array_api.py
 
 ### No audio
 ```bash
-python live_autotune.py --list-devices
-python live_autotune.py --scale "C major" --device <id>
+# Use simple version
+python simple_live.py
 ```
 
-### High latency
+### High latency (default is ~1 second)
 ```bash
-python live_autotune.py --scale "C major" --block-size 2048
-```
-
-### Unstable/glitchy
-```bash
-python live_autotune.py --scale "C major" --block-size 8192
+# Try 0.5 seconds (may be less reliable)
+python simple_live.py --block-size 22050
 ```
 
 ## Files
 
-- `live_autotune.py` - Live streaming application
+- `simple_live.py` - Simple live autotune (recommended)
+- `live_autotune.py` - Full-featured version with threading
 - `example_array_api.py` - API usage examples
 - `test_bindings.py` - Unit tests
 - `LIVE_MODE.md` - Full documentation
@@ -130,7 +127,7 @@ python live_autotune.py --scale "C major" --block-size 8192
 ## Default Parameters
 
 - Sample rate: 44100 Hz
-- Block size: 4096 samples
-- Window size: 4096 samples (internal)
-- Stride: 1024 samples (internal)
-- Estimated latency: ~100-115ms
+- Block size: 44100 samples (1 second)
+- Window size: 8192 samples (internal)
+- Stride: 2048 samples (internal)
+- Expected latency: ~1 second

@@ -4,11 +4,11 @@ Real-time pitch correction for live audio input (microphone).
 
 ## Features
 
-- **Real-time processing**: Low-latency pitch correction for live vocals
+- **Real-time processing**: Pitch correction for live vocals (~1 second latency)
 - **Two modes**:
   - **Scale mode**: Correct pitch to match a musical scale (e.g., C major, A minor)
   - **Note mode**: Correct pitch to a specific target frequency (e.g., 440 Hz)
-- **Configurable latency**: Adjust block size to balance latency vs. stability
+- **Simple and full-featured versions**: Choose based on your needs
 
 ## Requirements
 
@@ -18,57 +18,60 @@ Install Python dependencies:
 pip install numpy sounddevice
 ```
 
-## Usage
+## Quick Start
 
-### Quick Start
+### Simple Version (Recommended)
 
-Correct to C major scale:
 ```bash
-python live_autotune.py --scale "C major"
+# Scale mode (default: C major)
+python simple_live.py
+
+# Different scale
+python simple_live.py --scale "A minor"
+
+# Single note mode
+python simple_live.py --note 440.0
 ```
 
-Correct to a specific note (A4 = 440 Hz):
+### Full-Featured Version
+
 ```bash
+# Scale mode
+python live_autotune.py --scale "C major"
+
+# Single note mode
 python live_autotune.py --note 440.0
 ```
 
-### Options
+## Usage
+
+### simple_live.py (Recommended)
+
+Direct processing in audio callback - simple and reliable.
 
 ```bash
-python live_autotune.py --help
+python simple_live.py [options]
+
+Options:
+  --scale SCALE         Musical scale (default: C major)
+  --note FREQ          Target note frequency in Hz
+  --block-size SIZE    Block size in samples (default: 44100)
+  --sample-rate RATE   Sample rate in Hz (default: 44100)
 ```
 
-**Mode selection** (required, choose one):
-- `--scale SCALE`: Musical scale name (e.g., "C major", "A minor", "E major")
-- `--note FREQ`: Target note frequency in Hz (e.g., 440.0 for A4)
-
-**Audio settings** (optional):
-- `--sample-rate RATE`: Sample rate in Hz (default: 44100)
-- `--block-size SIZE`: Processing block size in samples (default: 4096)
-  - Smaller = lower latency but potentially less stable
-  - Larger = higher latency but more stable pitch detection
-- `--device ID`: Input device ID (use `--list-devices` to see options)
-- `--list-devices`: List available audio devices and exit
-
-### Examples
-
-Use a different scale:
+Examples:
 ```bash
-python live_autotune.py --scale "A minor"
-```
+# C major scale
+python simple_live.py
 
-Lower latency (smaller block size):
-```bash
-python live_autotune.py --scale "C major" --block-size 2048
-```
+# A minor scale
+python simple_live.py --scale "A minor"
 
-Select specific audio device:
-```bash
-# First, list devices
-python live_autotune.py --list-devices
+# Single note (A4)
+python simple_live.py --note 440.0
 
-# Then use the device ID
-python live_autotune.py --scale "C major" --device 2
+# Smaller block size (lower latency, may not work as well)
+python simple_live.py --scale "C major" --block-size 22050
 ```
 
 ## How It Works
@@ -82,14 +85,12 @@ python live_autotune.py --scale "C major" --device 2
 
 Total latency = block_size / sample_rate + processing_time
 
-With default settings (4096 samples @ 44.1 kHz):
-- Block latency: ~93 ms
-- Processing latency: ~5-20 ms (depends on CPU)
-- **Total: ~100-115 ms**
+With default settings (44100 samples @ 44.1 kHz):
+- Block latency: ~1000 ms (1 second)
+- Processing latency: ~10-50 ms (depends on CPU)
+- **Total: ~1-1.05 seconds**
 
-For lower latency, reduce block size:
-- 2048 samples: ~46 ms block latency
-- 1024 samples: ~23 ms block latency (may be less stable)
+Note: Larger block sizes are required for accurate pitch detection. You can try smaller sizes like 22050 (0.5 seconds) but pitch detection may be less reliable.
 
 ## API Functions
 
