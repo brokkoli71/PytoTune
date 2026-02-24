@@ -68,7 +68,7 @@ namespace p2t {
         };
 
 #if USE_PRECOMPUTED_TWIDDLES
-        static TwiddleTable twiddles(N, sign); // precompute once for N
+        TwiddleTable twiddles(N, sign); // precompute once for N
 #endif
 
         long bits = numStages;
