@@ -27,7 +27,7 @@ namespace p2t {
      * @param fftFrameSize Number of complex samples (must be a power of 2)
      * @param sign -1 for FFT, 1 for inverse FFT
      */
-    void smbFft(std::vector<float> &fftBuffer, long fftFrameSize, long sign);
+    void smbFft(std::vector<float> &fftBuffer, long fftFrameSize, int sign);
 }
 
 #endif //PYTOTUNE_FFT_H

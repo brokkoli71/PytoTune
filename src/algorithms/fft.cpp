@@ -16,18 +16,37 @@
 #include <algorithm>
 #include <cstring>
 
+#define USE_PRECOMPUTED_TWIDDLES 1
+
+#if USE_PRECOMPUTED_TWIDDLES
+struct TwiddleTable {
+    std::vector<float> re;
+    std::vector<float> im;
+    long size;
+
+    TwiddleTable(long N, int sign) : size(N / 2), re(N / 2), im(N / 2) {
+        for (long k = 0; k < size; ++k) {
+            float angle = sign * 2.0f * M_PI * k / N;
+            re[k] = std::cos(angle);
+            im[k] = std::sin(angle);
+        }
+    }
+};
+#endif
+
 namespace p2t {
-    inline double smbAtan2(double x, double y) {
-        double signx = (x > 0.0) ? 1.0 : -1.0;
+    inline float smbAtan2(float x, float y) {
+        float signx = (x > 0.0) ? 1.0 : -1.0;
         if (x == 0.0) return 0.0;
         if (y == 0.0) return signx * M_PI / 2.0;
         return std::atan2(x, y);
     }
 
-    void smbFft(std::vector<float> &fftBuffer, long fftFrameSize, long sign) {
+    void smbFft(std::vector<float> &fftBuffer, long fftFrameSize, int sign) {
         if (fftFrameSize <= 0) return;
+
         const long N = fftFrameSize;
-        if ((long) fftBuffer.size() < 2 * N) return;
+        if (fftBuffer.size() < 2 * N) return;
 
         // Check N is power of two, compute numStages
         long t = N;
@@ -48,6 +67,10 @@ namespace p2t {
             return y;
         };
 
+#if USE_PRECOMPUTED_TWIDDLES
+        static TwiddleTable twiddles(N, sign); // precompute once for N
+#endif
+
         long bits = numStages;
         for (long i = 0; i < N; ++i) {
             long j = bit_reverse(i, bits);
@@ -57,22 +80,28 @@ namespace p2t {
             }
         }
 
-        const double PI = std::acos(-1.0);
-
         // Danielson-Lanczos / iterative radix-2
         // le = current DFT length in complex samples: 2,4,8,...,N
         for (long le = 2; le <= N; le <<= 1) {
             long le2 = le >> 1; // half size (butterfly distance)
             // compute basic angular increment for this stage
             // angle increment for k = 1: theta = sign * 2π / le
-            double theta = sign * 2.0 * PI / static_cast<double>(le);
+            float theta = sign * 2.0 * M_PI / static_cast<float>(le);
 
             // We will compute twiddles via recurrence to avoid many cos/sin calls.
             // For each k from 0..le2-1 compute W = exp(j * k * theta)
             for (long k = 0; k < le2; ++k) {
                 // twiddle W = cos(k*theta) + j*sin(k*theta)
-                double wr = std::cos(k * theta);
-                double wi = std::sin(k * theta);
+#if USE_PRECOMPUTED_TWIDDLES
+                // pick correct stride for this stage
+                long stride = N / le;
+                float wr = twiddles.re[k * stride];
+                float wi = twiddles.im[k * stride];
+#else
+                float wr = std::cos(k * theta);
+                float wi = std::sin(k * theta);
+#endif
+
 
                 // Perform butterflies for this twiddle across all blocks
                 for (long blockStart = 0; blockStart < N; blockStart += le) {
@@ -84,22 +113,22 @@ namespace p2t {
                     long p2 = 2 * i2;
                     long p2i = p2 + 1;
 
-                    double r1 = fftBuffer[p1];
-                    double i1v = fftBuffer[p1i];
-                    double r2 = fftBuffer[p2];
-                    double i2v = fftBuffer[p2i];
+                    float r1 = fftBuffer[p1];
+                    float i1v = fftBuffer[p1i];
+                    float r2 = fftBuffer[p2];
+                    float i2v = fftBuffer[p2i];
 
                     // t = W * lower
-                    double tr = r2 * wr - i2v * wi;
-                    double ti = r2 * wi + i2v * wr;
+                    float tr = r2 * wr - i2v * wi;
+                    float ti = r2 * wi + i2v * wr;
 
                     // lower = upper - t
-                    fftBuffer[p2] = static_cast<float>(r1 - tr);
-                    fftBuffer[p2i] = static_cast<float>(i1v - ti);
+                    fftBuffer[p2] = r1 - tr;
+                    fftBuffer[p2i] = i1v - ti;
 
                     // upper = upper + t
-                    fftBuffer[p1] = static_cast<float>(r1 + tr);
-                    fftBuffer[p1i] = static_cast<float>(i1v + ti);
+                    fftBuffer[p1] = r1 + tr;
+                    fftBuffer[p1i] = i1v + ti;
                 }
             }
         }
