@@ -16,6 +16,8 @@
 #include <algorithm>
 #include <cstring>
 
+#define USE_PREDEFINED_TWIDDLES 1
+
 namespace p2t {
     void smbFft(std::vector<float> &fftBuffer, const int fftFrameSize, const int sign) {
         if (fftFrameSize <= 0) return;
@@ -57,14 +59,25 @@ namespace p2t {
             // compute basic angular increment for this stage
             // angle increment for k = 1: theta = sign * 2π / le
             float theta = static_cast<float>(sign) * 2.f * static_cast<float>(M_PI) / static_cast<float>(le);
+#if USE_PREDEFINED_TWIDDLES
+            // Precompute W1 = exp(i * theta)
+            float wpr = std::cos(theta);
+            float wpi = std::sin(theta);
+
+            // Start with W0 = 1 + 0i
+            float wr = 1.0f;
+            float wi = 0.0f;
+#endif
+
 
             // We will compute twiddles via recurrence to avoid many cos/sin calls.
             // For each k from 0..le2-1 compute W = exp(j * k * theta)
             for (int k = 0; k < le2; ++k) {
                 // twiddle W = cos(k*theta) + j*sin(k*theta)
+#if not USE_PREDEFINED_TWIDDLES
                 const float wr = std::cos(static_cast<float>(k) * theta);
                 const float wi = std::sin(static_cast<float>(k) * theta);
-
+#endif
                 // Perform butterflies for this twiddle across all blocks
                 for (int blockStart = 0; blockStart < N; blockStart += le) {
                     int i1 = blockStart + k; // index of upper complex sample
@@ -92,6 +105,15 @@ namespace p2t {
                     fftBuffer[p1] = r1 + tr;
                     fftBuffer[p1i] = i1v + ti;
                 }
+
+#if USE_PREDEFINED_TWIDDLES
+                // Wk+1 = Wk * W1
+                float next_wr = wr * wpr - wi * wpi;
+                float next_wi = wr * wpi + wi * wpr;
+
+                wr = next_wr;
+                wi = next_wi;
+#endif
             }
         }
     }
