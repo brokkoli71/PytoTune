@@ -5,6 +5,7 @@
 
 #include "pytotune/algorithms/pitch_shifter.h"
 #include "pytotune/algorithms/yin_pitch_detector.h"
+#include <omp.h>
 
 namespace p2t {
     WavFile PitchCorrectionPipeline::matchMidi(const WavFile &src,
@@ -13,21 +14,31 @@ namespace p2t {
                                                const float tuning) {
         const float sampleRate = static_cast<float>(src.data().sampleRate);
 
-        // Silence detectotr TODO
 
-        // TODO Fix the yin pitcher to use Windowing
         YINPitchDetector ypd(windowing);
-        WindowedData<float> pitches = ypd.detect_pitch(src.data(), 20, 2000, 0.05f);
+        double start = omp_get_wtime();
+        WindowedData<float> pitches = ypd.detect_pitch(src.data(), 100, 2000, 0.05f);
+
+        double middle = omp_get_wtime();
 
         WindowedData<float> targetPitches = midiFile.getWindowedHighestPitches(windowing, sampleRate, tuning);
 
         std::vector<float> pitchCorrectionFactors(pitches.data.size());
         for (int i = 0; i < pitches.data.size(); ++i) {
-            pitchCorrectionFactors[i] = targetPitches.data[i] / pitches.data[i];
+            pitchCorrectionFactors[i] = (pitches.data[i] == 0 || targetPitches.data[i] == 0)
+                                            ? 1
+                                            : targetPitches.data[i] / pitches.data[i];
         }
+
 
         PitchShifter ps(windowing, sampleRate);
         std::vector<float> outValues = ps.run(src.data().samples, {windowing, pitchCorrectionFactors});
+        double end = omp_get_wtime();
+
+        std::cout << "Time for Pitch Detection: " << middle - start << ". " << (middle - start) / (end - start) * 100 <<
+                "%" << std::endl;
+        std::cout << "Time for Pitch Shifting: " << end - middle << ". " << (end - middle) / (end - start) * 100 << "%"
+                << std::endl;
 
         return WavFile(WavData(static_cast<unsigned int>(sampleRate), 1, outValues));
     }
@@ -37,9 +48,7 @@ namespace p2t {
                                                   Windowing windowing) {
         const float sampleRate = static_cast<float>(src.data().sampleRate);
 
-        // TODO Silence Detector
 
-        // TODO Fix the yin pitcher to use Windowing
         std::cout << "Run Yin Pitch Detector" << std::endl;
         YINPitchDetector ypd(windowing);
         WindowedData<float> pitches = ypd.detect_pitch(src.data(), 20, 2000, 0.05f);

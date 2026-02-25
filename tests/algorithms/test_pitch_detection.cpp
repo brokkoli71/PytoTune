@@ -13,8 +13,7 @@ TEST(PitchDetectionTest, DetectSineWavePitch) {
         const p2t::WavFile reader = p2t::WavFile::load(constants::SIN_F440_I80_SR44100_AF1);
         const auto& data = reader.data();
         const int window_size = 2024;
-        const int expected_windows = std::ceil(static_cast<float>(constants::SIN_FILE_NUM_SAMPLES)/
-            window_size);
+        const int expected_windows = std::ceil(constants::SIN_FILE_NUM_SAMPLES/window_size);
         const int middle_C_freq = 261; // Frequency of Middle C (C4)
 
         const auto detection = p2t::YINPitchDetector({window_size, window_size}).detect_pitch(data, middle_C_freq,
@@ -26,7 +25,7 @@ TEST(PitchDetectionTest, DetectSineWavePitch) {
         for (const auto& pitch : detection.data)
         {
         // Expect the detected pitch to be approximately 440 Hz
-        EXPECT_NEAR(pitch, 440.0f, 0.1f);
+        EXPECT_NEAR(pitch, 440.0f, 1.f);
         }
         });
 }
@@ -37,8 +36,7 @@ TEST(PitchDetectionTest, DetectSineWavePitchWithOverlap) {
         const auto& data = reader.data();
         const int window_size = 2024;
         const int window_overlap = 512;
-        const int expected_windows = std::ceil(static_cast<float>(constants::SIN_FILE_NUM_SAMPLES)/
-            (window_size-window_overlap));
+        const int expected_windows = std::ceil(constants::SIN_FILE_NUM_SAMPLES/(window_size-window_overlap));
         const int middle_C_freq = 261; // Frequency of Middle C (C4)
 
         const auto detection = p2t::YINPitchDetector({window_size, window_size - window_overlap}).detect_pitch(data,

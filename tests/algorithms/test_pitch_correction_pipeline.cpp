@@ -3,7 +3,7 @@
 #include "../test_utils.h"
 #include "pytotune/algorithms/pitch_correction_pipeline.h"
 
-/*
+
 TEST(TestPitchPitchCorrectionPipeline, Playground) {
     // std::string testFile = constants::TEST_DATA_DIR + "/sin-raise_fstart200_fend1000_i80_sr44100_af1.wav";
     std::string testFile = constants::TEST_DATA_DIR + "/alle_meine_entchen.wav";
@@ -31,4 +31,3 @@ TEST(TestPitchPitchCorrectionPipeline, Playground2) {
 
     out.store(constants::TEST_OUTPUT_DIR + "/test.wav");
 }
-*/
