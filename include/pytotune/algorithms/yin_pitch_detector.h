@@ -1,5 +1,7 @@
 #ifndef PYTOTUNE_PITCH_DETECTOR_H
 #define PYTOTUNE_PITCH_DETECTOR_H
+#include <stdexcept>
+
 #include "../io/wav_file.h"
 #include "pytotune/data-structures/windowing.h"
 
@@ -7,10 +9,18 @@ namespace p2t {
     struct PitchRange {
         float min;
         float max;
+
+        constexpr PitchRange(const float minValue, const float maxValue)
+            : min(minValue), max(maxValue) {
+            if (!(minValue > 0.0f && minValue < maxValue)) {
+                throw std::invalid_argument("Invalid PitchRange");
+            }
+        }
     };
 
     namespace VoiceRanges {
         // Basic categories
+        constexpr PitchRange HEARABLE = {20.f, 20000.f};
         constexpr PitchRange MAN = {82.41f, 523.25f}; // E2 - C5
         constexpr PitchRange WOMAN = {175.00f, 1046.50f}; // F3 - C6
         constexpr PitchRange HUMAN = {82.41f, 1046.50f}; // E2 - C6
@@ -21,6 +31,8 @@ namespace p2t {
         constexpr PitchRange TENOR = {130.81f, 523.25f}; // C3 - C5
         constexpr PitchRange ALTO = {175.00f, 698.46f}; // F3 - F5
         constexpr PitchRange SOPRANO = {261.63f, 1046.50f}; // C4 - C6
+
+        constexpr PitchRange CAT_PURR = {25.f, 150.f};
     }
 
     class YINPitchDetector {
