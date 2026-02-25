@@ -7,12 +7,8 @@
 #include <cmath>
 
 namespace p2t {
-    WindowedData<float> YINPitchDetector::detect_pitch(const WavData &audio_buffer, const int f_min, const int f_max,
+    WindowedData<float> YINPitchDetector::detect_pitch(const WavData &audio_buffer, const PitchRange pitch_range,
                                                        const float threshold = 0.4) const {
-        if (f_min <= 0 || f_min >= f_max) {
-            throw std::invalid_argument("f_min and f_max must be positive and f_min must be less than f_max.");
-        }
-
         constexpr int decimation_factor = 2; // or parameterize this
 
         std::vector<float> downsampled_audio =
@@ -22,8 +18,8 @@ namespace p2t {
         const unsigned int downsampled_fs =
                 audio_buffer.sampleRate / decimation_factor;
 
-        const unsigned int tau_min = downsampled_fs / f_max;
-        const unsigned int tau_max = downsampled_fs / f_min;
+        const unsigned int tau_min = downsampled_fs / static_cast<int>(pitch_range.max);
+        const unsigned int tau_max = downsampled_fs / static_cast<int>(pitch_range.min);
 
         const unsigned int num_windows = (downsampled_audio.size() - this->windowing.windowSize) / this->windowing.
                                          stride + 1;

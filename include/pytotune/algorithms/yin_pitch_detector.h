@@ -4,17 +4,35 @@
 #include "pytotune/data-structures/windowing.h"
 
 namespace p2t {
+    struct PitchRange {
+        float min;
+        float max;
+    };
+
+    namespace VoiceRanges {
+        // Basic categories
+        constexpr PitchRange MAN = {82.41f, 523.25f}; // E2 - C5
+        constexpr PitchRange WOMAN = {175.00f, 1046.50f}; // F3 - C6
+        constexpr PitchRange HUMAN = {82.41f, 1046.50f}; // E2 - C6
+
+        // Standard Singing Ranges
+        constexpr PitchRange BASS = {82.41f, 261.63f}; // E2 - C4
+        constexpr PitchRange BARITON = {98.00f, 392.00f}; // G2 - G4
+        constexpr PitchRange TENOR = {130.81f, 523.25f}; // C3 - C5
+        constexpr PitchRange ALTO = {175.00f, 698.46f}; // F3 - F5
+        constexpr PitchRange SOPRANO = {261.63f, 1046.50f}; // C4 - C6
+    }
+
     class YINPitchDetector {
     public:
         /**
          * Detects the pitch of the given audio buffer using the YIN algorithm with preset parameters.
          * @param audio_buffer The audio buffer containing the WavData.
-         * @param f_min Minimum frequency to consider (in Hz).
-         * @param f_max Maximum frequency to consider (in Hz).
+         * @param pitch_range Minimum and maximum frequency to consider (in Hz).
          * @param threshold Threshold for pitch detection confidence (between 0 and 1).
          * @return A PitchDetection struct containing the detected pitch information.
          */
-        [[nodiscard]] WindowedData<float> detect_pitch(const WavData &audio_buffer, int f_min, int f_max,
+        [[nodiscard]] WindowedData<float> detect_pitch(const WavData &audio_buffer, PitchRange pitch_range,
                                                        float threshold) const;
 
         /**

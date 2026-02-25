@@ -11,13 +11,14 @@ namespace p2t {
     WavFile PitchCorrectionPipeline::matchMidi(const WavFile &src,
                                                const MidiFile &midiFile,
                                                Windowing windowing,
-                                               const float tuning) {
+                                               const float tuning,
+                                               const PitchRange pitch_range) {
         const float sampleRate = static_cast<float>(src.data().sampleRate);
 
 
         YINPitchDetector ypd(windowing);
         double start = omp_get_wtime();
-        WindowedData<float> pitches = ypd.detect_pitch(src.data(), 100, 2000, 0.05f);
+        WindowedData<float> pitches = ypd.detect_pitch(src.data(), pitch_range, 0.05f);
 
         double middle = omp_get_wtime();
 
@@ -45,13 +46,13 @@ namespace p2t {
 
     WavFile PitchCorrectionPipeline::roundToScale(const WavFile &src,
                                                   const Scale &scale,
-                                                  Windowing windowing) {
+                                                  Windowing windowing, PitchRange pitch_range) {
         const float sampleRate = static_cast<float>(src.data().sampleRate);
 
 
         std::cout << "Run Yin Pitch Detector" << std::endl;
         YINPitchDetector ypd(windowing);
-        WindowedData<float> pitches = ypd.detect_pitch(src.data(), 20, 2000, 0.05f);
+        WindowedData<float> pitches = ypd.detect_pitch(src.data(), pitch_range, 0.05f);
 
         std::cout << "Seek the target notes in the scale" << std::endl;
         std::vector<float> pitchCorrectionFactors(pitches.data.size());
