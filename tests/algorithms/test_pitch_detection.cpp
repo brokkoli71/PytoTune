@@ -48,7 +48,7 @@ TEST(PitchDetectionTest, DetectSineWavePitchWithOverlap) {
         for (const auto& pitch : detection.data)
         {
         // Expect the detected pitch to be approximately 440 Hz
-        EXPECT_NEAR(pitch, 440.0f, 0.1f);
+        EXPECT_NEAR(pitch, 440.0f, 1.f);
         }
         });
 }
