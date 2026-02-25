@@ -16,7 +16,7 @@ namespace p2t {
      *
      */
     void tune_to_midi(const std::string &wav_path, const std::string &midi_path, const std::string &out_path,
-                      PitchRange pitch_range);
+                      PitchRange pitch_range = VoiceRanges::HUMAN);
 
     /**
      * Tune a wav file to a musical scale.
@@ -26,7 +26,7 @@ namespace p2t {
      * @param pitch_range The maximum pitch detection range
      */
     void tune_to_scale(const std::string &wav_path, const Scale &scale, const std::string &out_path,
-                       PitchRange pitch_range);
+                       PitchRange pitch_range = VoiceRanges::HUMAN);
 } // namespace p2t
 
 #endif // PYTOTUNE_API_H
