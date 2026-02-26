@@ -57,6 +57,10 @@ TEST(TestPitchShifter, ResultEqualsReferenceCode) {
 
     std::vector<float> out2(data.samples.size(), 0.0f);
     smbPitchShift(0.9f, data.samples.size(), 4096, 4, data.sampleRate, (float *) &data.samples[0], &out2[0]);
+    for (int i = 0; i < 1000; i++) {
+        std::cout << i << ", " << data.samples[i] << std::endl;
+    }
+
 
     EXPECT_NEAR_VEC_EPS(out1, out2, 1e-2f);
     p2t::WavFile newFile1({data.sampleRate, 2, out1});
