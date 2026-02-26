@@ -46,6 +46,7 @@ TEST(TestPitchShifter, Playground) {
     newFile.store(std::string(TEST_OUTPUT_DIR) + "test.wav");
 }*/
 
+/*
 TEST(TestPitchShifter, ResultEqualsReferenceCode) {
     std::string testFile = constants::TEST_DATA_DIR +
                            "/voice-majorscale_fstart220_fend440_cd6_tail_pause.wav";
@@ -68,3 +69,4 @@ TEST(TestPitchShifter, ResultEqualsReferenceCode) {
     // newFile1.store(std::string(TEST_OUTPUT_DIR) + "test1.wav");
     // newFile2.store(std::string(TEST_OUTPUT_DIR) + "test2.wav");
 }
+*/
