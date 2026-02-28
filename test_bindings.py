@@ -8,30 +8,49 @@ import pytotune
 
 
 def test_scale():
-    print("Testing scale tuning...")
+    print("Testing scale tuning (default pitch_range omitted)...")
     wav_path = "tests/data/voice_f440_sr44100.wav"
     out_path = "tests/testoutput/out_scale.wav"
 
-    # Tuning A4 to 440Hz, Scale C Major
     try:
         scale = pytotune.Scale.from_name("C major")
+        # call without pitch_range (should use default HUMAN)
         pytotune.tune_to_scale(wav_path, scale, out_path)
         print(f"Success! Output saved to {out_path}")
     except Exception as e:
         print(f"Error: {e}")
 
+    # Example: use singer_to_pitch_range helper
+    try:
+        pr = pytotune.singer_to_pitch_range("man")
+        out_path2 = "tests/testoutput/out_scale_man.wav"
+        pytotune.tune_to_scale(wav_path, scale, out_path2, pr)
+        print(f"Success with singer range! Output saved to {out_path2}")
+    except Exception as e:
+        print(f"Error using singer range: {e}")
+
 
 def test_midi():
-    print("\nTesting midi tuning...")
+    print("\nTesting midi tuning (default pitch_range omitted)...")
     wav_path = "tests/data/voice_f440_sr44100.wav"
     midi_path = "tests/data/test.mid"
     out_path = "tests/testoutput/out_midi.wav"
 
     try:
+        # call without pitch_range (should use default HUMAN)
         pytotune.tune_to_midi(wav_path, midi_path, out_path)
         print(f"Success! Output saved to {out_path}")
     except Exception as e:
         print(f"Error: {e}")
+
+    # Example: pass an explicit numeric PitchRange
+    try:
+        pr = pytotune.PitchRange(200.0, 800.0)
+        out_path2 = "tests/testoutput/out_midi_customrange.wav"
+        pytotune.tune_to_midi(wav_path, midi_path, out_path2, pr)
+        print(f"Success with explicit PitchRange! Output saved to {out_path2}")
+    except Exception as e:
+        print(f"Error with explicit PitchRange: {e}")
 
 
 if __name__ == "__main__":
