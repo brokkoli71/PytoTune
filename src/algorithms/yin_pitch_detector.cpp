@@ -60,7 +60,7 @@ namespace p2t {
             }
 
             // CMND (Cumulative Mean Normalized Difference Function)
-            std::vector<float> cmnd(tau_max + 1, 0.0f);
+            std::vector<float> cmnd(tau_max + 1);
             float running_sum = 1.0f;
             for (int tau = 1; tau <= tau_max; ++tau) {
                 running_sum += diff[tau];
@@ -70,7 +70,7 @@ namespace p2t {
             // Find the pitch for this window based on the cmnd function and threshold
             unsigned int best_tau = 0;
 
-            // 1) Search for first local minimum below threshold
+            // Search for first local minimum below threshold
             for (unsigned int tau = tau_min + 1; tau < tau_max - 1; ++tau) {
                 if (cmnd[tau] < threshold &&
                     cmnd[tau] < cmnd[tau - 1] &&
@@ -80,7 +80,7 @@ namespace p2t {
                 }
             }
 
-            // 2) Fallback: global minimum in range if nothing passed threshold
+            // Fallback: global minimum in range if nothing passed threshold
             if (best_tau == 0) {
                 best_tau = tau_min;
                 for (int tau = tau_min + 1; tau <= tau_max; ++tau) {
@@ -108,18 +108,39 @@ namespace p2t {
             pitchValues[i] = static_cast<float>(downsampled_fs) / static_cast<float>(best_tau);
         }
 
+        // smooth the pitch values by removing octave jumps down
+        for (size_t i = 1; i < pitchValues.size(); ++i) {
+            float octave_jump_threshold = pitchValues[i-1] / 1.5f; // if the pitch drops by more than a perfect fifth, it's likely an octave jump
+            if (pitchValues[i] < octave_jump_threshold) {
+                pitchValues[i] *= 2.0f; // assume it's an octave jump and correct it
+            }
+        }
+        // smooth by median filter with window size 5
+        std::vector<float> smoothed_pitches = pitchValues;
+        const int median_window = 5;
+        for (int i = 0; i < pitchValues.size(); ++i) {
+            std::vector<float> window;
+            for (int j = -median_window/2; j <= median_window/2; ++j) {
+                if (j + i >= 0 && i + j < pitchValues.size()) {
+                    window.push_back(pitchValues[i + j]);
+                }
+            }
+            std::sort(window.begin(), window.end());
+            smoothed_pitches[i] = window[window.size() / 2]; // median
+        }
+
         // Get original windowing
         const unsigned int uncompressed_num_windows = audio_buffer.samples.size() / this->windowing.stride;
         std::vector<float> uncompressed_pitch_values(uncompressed_num_windows, 0.0f);
 
         for (int i = 0; i < uncompressed_num_windows; ++i) {
             int j = i / decimation_factor;
-            if (j >= pitchValues.size() - 1) {
-                uncompressed_pitch_values[i] = pitchValues[pitchValues.size() - 1];
+            if (j >= smoothed_pitches.size() - 1) {
+                uncompressed_pitch_values[i] = smoothed_pitches[smoothed_pitches.size() - 1];
             } else {
                 // Linear Interpolation
-                const float start = pitchValues[j];
-                const float end = start == 0 ? 0 : (pitchValues[j + 1] == 0 ? start : pitchValues[j + 1]);
+                const float start = smoothed_pitches[j];
+                const float end = start == 0 ? 0 : (smoothed_pitches[j + 1] == 0 ? start : smoothed_pitches[j + 1]);
                 const float frac = static_cast<float>(i % decimation_factor) / decimation_factor;
                 uncompressed_pitch_values[i] = (1 - frac) * start + frac * end;
             }
