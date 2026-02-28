@@ -150,7 +150,7 @@ namespace p2t {
             for (int k = 0; k < windowing.windowSize; ++k) {
                 if (window_index * windowing.stride + k >= samples.size()) break;
                 float window =
-                        -0.5f * std::cosf(2.0f * M_PI * k / windowing.windowSize) + 0.5f;
+                        -0.5f * std::cos(2.0f * M_PI * k / windowing.windowSize) + 0.5f;
 
 #pragma omp atomic update
                 outData[window_index * windowing.stride + k] +=
