@@ -1,4 +1,5 @@
 #include <cmath>
+#include <fstream>
 
 #include "../include/pytotune/io/wav_file.h"
 #include <gtest/gtest.h>
@@ -115,4 +116,25 @@ TEST(PitchDetectionTest, DetectVoicePitch) {
         EXPECT_NEAR(pitch, 440.0f, 10.f);
         }
         });
+}
+
+// for manual inspection of the detected pitches
+TEST(PitchDetectionTest,AgainstABSounds) {
+    // std::string testFile = constants::TEST_DATA_DIR + "/ABSounds/female-ohh.wav";
+    std::string testFile = constants::TEST_DATA_DIR + "/ABSounds/female-phrase.wav";
+    p2t::WavFile reader = p2t::WavFile::load(testFile);
+    const auto& data = reader.data();
+
+    auto detection = p2t::YINPitchDetector({512, 512})
+            .detect_pitch(data, {164, 698}, 0.4f);
+    // write the detected pitches to a file for manual inspection
+    std::ofstream outFile(constants::TEST_OUTPUT_DIR + "/detected_pitches.txt");
+    for (const auto& pitch : detection.data) {
+        outFile << pitch << "\n";
+    }
+    // Close the file
+    outFile.close();
+    // start python script to plot the detected pitches
+    std::string command = "python ../tests/visualize-pitches.py";
+    system(command.c_str());
 }
