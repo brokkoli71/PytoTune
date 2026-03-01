@@ -1,7 +1,7 @@
 #!/bin/bash
 # VTune Cache Miss Analysis - Line-by-Line Report
 
-RESULT_DIR="../testoutput/vtune_results/with_hwy_x8"
+RESULT_DIR="../testoutput/vtune_results/cache_with_hwy_x8"
 OUTPUT_CSV="$RESULT_DIR/cache_line_report.csv"
 PYTOTUNE_CLI="../../cmake-build-relwithdebinfo/pytotune_cli"
 WAV_FILE="../data/untitled_8x.wav"

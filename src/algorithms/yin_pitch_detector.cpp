@@ -134,7 +134,7 @@ namespace p2t {
                     refined_tau += delta;
                 }
             }
-            pitchValues[i] = static_cast<float>(downsampled_fs) / static_cast<float>(best_tau);
+            pitchValues[i] = static_cast<float>(downsampled_fs) / refined_tau;
         }
 
         // smooth the pitch values by removing octave jumps down
