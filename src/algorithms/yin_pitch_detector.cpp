@@ -5,14 +5,18 @@
 #include <ostream>
 
 #include <cmath>
+#include "hwy/highway.h"
+#include "hwy/aligned_allocator.h"
 
+using namespace hwy::HWY_NAMESPACE;
+# define USE_HWY 1
 namespace p2t {
     WindowedData<float> YINPitchDetector::detect_pitch(const WavData &audio_buffer, const PitchRange pitch_range,
                                                        const float threshold = 0.4) const {
         constexpr int decimation_factor = 2; // or parameterize this
 
         std::vector<float> downsampled_audio =
-                decimate_zero_phase(audio_buffer.samples, decimation_factor);
+            decimate_zero_phase(audio_buffer.samples, decimation_factor);
 
 
         const unsigned int downsampled_fs =
@@ -30,7 +34,6 @@ namespace p2t {
             const int window_start = i * this->windowing.stride;
             const int window_end = std::min(window_start + this->windowing.windowSize,
                                             static_cast<int>(downsampled_audio.size()));
-
             std::vector<float> window_samples(
                 downsampled_audio.begin() + window_start,
                 downsampled_audio.begin() + window_end);
@@ -49,12 +52,38 @@ namespace p2t {
                 continue;
             }
 
-            std::vector diff(tau_max + 1, 0.0f);
+            std::vector<float> diff(tau_max + 1);
             for (unsigned int tau = tau_min; tau <= tau_max; ++tau) {
+                // computation of sum_{j=0}^{N-1} (x[j] - x[j+tau])^2
+                size_t k = 0;
+                const float *a_ptr = window_samples.data();
+                const float *b_ptr = a_ptr + tau;
                 float sum = 0.0f;
-                for (int j = 0; j < window_samples.size() - tau; ++j) {
-                    const float delta = window_samples[j] - window_samples[j + tau];
-                    sum += delta * delta;
+                const size_t N = (window_samples.size() > tau) ? (window_samples.size() - tau) : 0;
+                if (N > 0) {
+# if USE_HWY
+                    // Vectorized computation using Highway
+                    ScalableTag<float> d;
+                    auto vec_acc = Set(d, 0.0f);
+                    const size_t lanes = Lanes(d);
+
+                    for (; k + lanes <= N; k += lanes) {
+                        const auto va = Load(d, a_ptr + k);
+                        const auto vb = Load(d, b_ptr + k);
+                        const auto diffv = va - vb;
+                        vec_acc = vec_acc + diffv * diffv;
+                    }
+
+                    // Horizontal reduce SIMD accumulator into scalar sum
+                    std::vector<float> tmp(lanes);
+                    Store(vec_acc, d, tmp.data());
+                    for (size_t i = 0; i < lanes; ++i) sum += tmp[i];
+# endif
+                    // Collect remaining elements
+                    for (; k < N; ++k) {
+                        const float delta = a_ptr[k] - b_ptr[k];
+                        sum += delta * delta;
+                    }
                 }
                 diff[tau] = sum;
             }
@@ -229,12 +258,26 @@ namespace p2t {
         // Reverse again → zero phase
         std::vector<float> filtered(backward.rbegin(), backward.rend());
 
-        // Downsample
-        std::vector<float> output;
-        output.reserve(filtered.size() / factor);
+        // Downsample using HWY-aligned memory
+        const size_t output_size = filtered.size() / factor;
+        
+        // Allocate HWY-aligned memory (aligned to vector width for optimal SIMD access)
+        float* HWY_RESTRICT aligned_output = static_cast<float*>(
+            hwy::AllocateAlignedBytes(output_size * sizeof(float), nullptr, nullptr));
+        
+        if (!aligned_output) {
+            throw std::runtime_error("Failed to allocate aligned memory for decimation");
+        }
 
-        for (std::size_t i = 0; i < filtered.size(); i += factor)
-            output.push_back(filtered[i]);
+        // Downsample into aligned buffer
+        size_t out_idx = 0;
+        for (size_t i = 0; i < filtered.size(); i += factor) {
+            aligned_output[out_idx++] = filtered[i];
+        }
+
+        // Copy to std::vector and free aligned memory
+        std::vector<float> output(aligned_output, aligned_output + output_size);
+        hwy::FreeAlignedBytes(aligned_output, nullptr, nullptr);
 
         return output;
     }
