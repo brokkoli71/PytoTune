@@ -1,6 +1,9 @@
 \documentclass[sigconf]{acmart}
 \usepackage{booktabs}
 \usepackage{siunitx}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{amsopn}
 
 %% \BibTeX command to typeset BibTeX logo in the docs
 \AtBeginDocument{%
@@ -140,6 +143,29 @@ We solved this by first determining the octave that $f$ is in, and then using a 
 \subsection{Pitch Detection}
 \label{sec:pitch-detection}
 \subsubsection{The YIN Algorithm}
+The YIN algorithm \cite{de2002yin} estimates the fundamental frequency of a signal by exploiting the near-periodicity of pitched sound. If a signal $x[n]$ has period $\tau^*$, then $x[n] \approx x[n + \tau^*]$ for all $n$. This motivates defining the \emph{difference function}
+$$
+d(\tau) = \sum_{j=0}^{W-1} \bigl(x[j] - x[j+\tau]\bigr)^2,
+$$
+where $W$ is the window length. For the true period $\tau^*$, $d$ attains a value close to zero. The pitch estimate is therefore obtained by searching for the lag $\tau$ that minimizes $d(\tau)$ within a plausible range $[\tau_{\min}, \tau_{\max}]$, derived from the assumed pitch range of the input.
+
+A naive search for the global minimum of $d$ is prone to octave errors, since $d$ also vanishes at integer multiples of $\tau^*$. To address this, YIN introduces the \emph{Cumulative Mean Normalized Difference} (CMND):
+$$
+d'(\tau) = \begin{cases} 1 & \tau = 0, \\ \displaystyle\frac{d(\tau) \cdot \tau}{\sum_{j=1}^{\tau} d(j)} & \tau > 0. \end{cases}
+$$
+By normalizing $d(\tau)$ relative to the running mean of all preceding values, $d'$ suppresses the trivial minimum at $\tau = 0$ and penalizes shorter lags, thereby reducing susceptibility to subharmonic errors.
+
+The pitch candidate is selected as the \emph{first local minimum} of $d'$ in $[\tau_{\min}, \tau_{\max}]$ whose value falls below a fixed confidence threshold $\theta$ (we use $\theta = 0.4$ per default). If no such minimum is found, the global minimum in the search range serves as a fallback.
+
+To obtain sub-sample accuracy, the selected integer lag $\hat\tau$ is refined by fitting a parabola to the three neighboring CMND values and taking its vertex:
+$$
+\hat\tau_{\text{refined}} = \hat\tau + \frac{d'[\hat\tau - 1] - d'[\hat\tau + 1]}{2\bigl(d'[\hat\tau - 1] - 2\,d'[\hat\tau] + d'[\hat\tau + 1]\bigr)}.
+$$
+The fundamental frequency is then recovered as $f = s / \hat\tau_{\text{refined}}$, where $s$ denotes the sample rate.
+
+In practice, the per-window pitch estimates can exhibit spurious octave jumps.
+We address this with two lightweight post-processing steps applied to the pitch trajectory: first, any window whose estimated pitch drops by more than a perfect fifth relative to its predecessor (factor $< 1/1.5$) is assumed to be an octave error and its value is doubled; second, a median filter of width five is applied across the trajectory to suppress remaining isolated outliers without smearing gradual pitch contours.
+
 \subsubsection{Optimisations}
 - Wir wissen es gibt noch eine FFT Variante, aber haben wir geskippt. Mit Citation und Möglicher Verbesserung
 
