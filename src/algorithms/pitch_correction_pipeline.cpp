@@ -68,7 +68,7 @@ namespace p2t {
         std::cout << "Seek the target notes in the scale" << std::endl;
         std::vector<float> pitchCorrectionFactors(pitches.data.size());
         for (int i = 0; i < pitches.data.size(); ++i) {
-            pitchCorrectionFactors[i] = scale.getClosestPitchInScale(pitches.data[i]) / pitches.data[i];
+            pitchCorrectionFactors[i] = scale.getPitchCorrectionFactor(pitches.data[i]);
         }
 
         std::cout << "Run pitch correcting" << std::endl;
