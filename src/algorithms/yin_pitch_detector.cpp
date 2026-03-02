@@ -28,7 +28,7 @@ namespace p2t {
         const unsigned int num_windows = (downsampled_audio.size() - this->windowing.windowSize) / this->windowing.
                                          stride + 1;
         std::vector<float> pitchValues(num_windows);
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic, 16) // prevent false sharing of pitchValues by using dynamic scheduling with small chunks
         for (int i = 0; i < num_windows; i++) {
             // Process each window
             const int window_start = i * this->windowing.stride;
