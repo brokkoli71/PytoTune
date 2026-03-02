@@ -167,11 +167,22 @@ In practice, the per-window pitch estimates can exhibit spurious octave jumps.
 We address this with two lightweight post-processing steps applied to the pitch trajectory: first, any window whose estimated pitch drops by more than a perfect fifth relative to its predecessor (factor $< 1/1.5$) is assumed to be an octave error and its value is doubled; second, a median filter of width five is applied across the trajectory to suppress remaining isolated outliers without smearing gradual pitch contours.
 
 \subsubsection{Optimisations}
-- Wir wissen es gibt noch eine FFT Variante, aber haben wir geskippt. Mit Citation und Möglicher Verbesserung
+The dominant cost of YIN is the evaluation of $d(\tau)$ for every lag and every window, an $\mathcal{O}(W \cdot \tau_{\max})$ operation. We applied three targeted optimisations to reduce this cost in practice.
 
-- Downsampling
+\textbf{Downsampling.} Pitch detection does not require the full audio bandwidth; only frequencies up to the maximum expected pitch are relevant.
+We therefore decimate the signal by a factor $\delta$ before running YIN, reducing both the number of samples per window and the required lag range, which reduces the cost of evaluating $d$ by approximately a factor of $\delta^2$.
+To avoid aliasing, we apply a zero-phase FIR low-pass filter prior to downsampling: the signal is convolved with a 101-tap Hamming-windowed sinc filter in both the forward and backward directions, yielding a linear-phase response with no phase distortion.
+The detected pitches are subsequently mapped back to the original window grid via linear interpolation.
 
-- Parallalisation
+\textbf{Parallelisation.} Each window is processed independently — the difference function, CMND computation, and minimum search for window $k$ do not depend on any other window.
+We exploit this by distributing the loop over windows across all available CPU cores using an \texttt{OpenMP} \texttt{parallel for} directive.
+
+\textbf{Vectorisation.} Within each window, the inner summation $\sum_j (x[j] - x[j+\tau])^2$ is a straightforward fused subtract-square-accumulate pattern that maps directly to SIMD instructions.
+We use the Google Highway library~\cite{highway} to load vectors of consecutive samples, compute the squared difference in a single vectorised expression, and accumulate the result.
+Highway selects the widest available SIMD instruction set at compile time (e.g.\ SSE4, AVX2, AVX-512, or NEON), so the same source code benefits from wider registers on newer hardware without manual dispatch.
+
+%- Wir wissen es gibt noch eine FFT Variante, aber haben wir geskippt. Mit Citation und Möglicher Verbesserung
+%(vielleicht weglassen?):\\
 
 \subsection{Pitch Correction}
 In \ref{sec:pitch-detection} we detected some pitch $f_m$ for each window $m$, and dependent on the mode, we can extract the target pitch $f'_m$ from the midi file or by projecting onto a scale (see \ref{sec:scale}). Now it is left to shift up the pitch of the window by $\alpha_m := \frac{f'_m}{f_m}$.
