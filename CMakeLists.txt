@@ -31,8 +31,15 @@ set_target_properties(pytotune_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(pytotune_core PUBLIC
         ${PROJECT_SOURCE_DIR}/include
+        highway
 )
-target_link_libraries(pytotune_core PUBLIC OpenMP::OpenMP_CXX)
+
+if (MSVC)
+    target_compile_options(pytotune_core INTERFACE /openmp:llvm)
+    target_compile_options(pytotune_core PRIVATE /openmp:llvm)
+endif()
+
+target_link_libraries(pytotune_core PUBLIC OpenMP::OpenMP_CXX PRIVATE hwy)
 
 # GoogleTest
 include(FetchContent)

@@ -38,6 +38,16 @@ namespace p2t {
         }
     }
 
+    float Scale::getPitchCorrectionFactor(float pitch) const {
+        if (pitch == 0.0f)
+            return 1.0f; // No pitch, so we don't need to correct it
+        if (pitch < 0.0f)
+            throw std::invalid_argument("Pitch must be positive.");
+
+        const float closestPitch = getClosestPitchInScale(pitch);
+        return closestPitch / pitch;
+    }
+
 
     float Scale::getClosestPitchInScale(float pitch) const {
         // We are looking for a, where pitch = a * basePitch

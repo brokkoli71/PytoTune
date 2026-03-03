@@ -64,6 +64,13 @@ namespace p2t {
          */
         float getClosestPitchInScale(float pitch) const;
 
+        /**
+         * Given a pitch of some note, the closest note in the scale is calculated and the factor to correct the pitch to the closest note is returned.
+         * @param pitch The pitch of the nate to be rounded.
+         * @return The factor to correct the pitch to the closest note in the scale. If the input pitch is 0, 1 is returned.
+         */
+        float getPitchCorrectionFactor(float pitch) const;
+
         // Getters and Setters
         float getBaseNote() const;
 

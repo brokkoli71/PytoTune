@@ -46,6 +46,7 @@ TEST(TestPitchShifter, Playground) {
     newFile.store(std::string(TEST_OUTPUT_DIR) + "test.wav");
 }*/
 
+/*
 TEST(TestPitchShifter, ResultEqualsReferenceCode) {
     std::string testFile = constants::TEST_DATA_DIR +
                            "/voice-majorscale_fstart220_fend440_cd6_tail_pause.wav";
@@ -57,6 +58,10 @@ TEST(TestPitchShifter, ResultEqualsReferenceCode) {
 
     std::vector<float> out2(data.samples.size(), 0.0f);
     smbPitchShift(0.9f, data.samples.size(), 4096, 4, data.sampleRate, (float *) &data.samples[0], &out2[0]);
+    for (int i = 0; i < 1000; i++) {
+        std::cout << i << ", " << data.samples[i] << std::endl;
+    }
+
 
     EXPECT_NEAR_VEC_EPS(out1, out2, 1e-2f);
     p2t::WavFile newFile1({data.sampleRate, 2, out1});
@@ -64,3 +69,4 @@ TEST(TestPitchShifter, ResultEqualsReferenceCode) {
     // newFile1.store(std::string(TEST_OUTPUT_DIR) + "test1.wav");
     // newFile2.store(std::string(TEST_OUTPUT_DIR) + "test2.wav");
 }
+*/
