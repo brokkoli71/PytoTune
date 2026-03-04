@@ -14,11 +14,11 @@ namespace p2t {
         WavFile matchMidi(const WavFile &src,
                           const MidiFile &midiFile,
                           Windowing windowing = DEFAULT_WINDOWING,
-                          float tuning = DEFAULT_A4, PitchRange pitch_range = VoiceRanges::HUMAN);
+                          float tuning = DEFAULT_A4, PitchRange pitchRange = VoiceRanges::HUMAN);
 
         WavFile roundToScale(const WavFile &src,
                              const Scale &scale,
-                             Windowing windowing = DEFAULT_WINDOWING, PitchRange pitch_range = VoiceRanges::HUMAN);
+                             Windowing windowing = DEFAULT_WINDOWING, PitchRange pitchRange = VoiceRanges::HUMAN);
     };
 }
 

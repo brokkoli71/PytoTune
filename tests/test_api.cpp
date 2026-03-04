@@ -14,7 +14,7 @@ TEST(PythonBindingsTest, TuneToMidi) {
     std::string outputFile = constants::TEST_OUTPUT_DIR + "/test_tune_to_midi.wav";
 
     EXPECT_NO_THROW({
-        p2t::tune_to_midi(wavFile, midiFile, outputFile);
+        p2t::tuneToMidi(wavFile, midiFile, outputFile);
     });
 }
 
@@ -24,6 +24,6 @@ TEST(PythonBindingsTest, TuneToScale) {
     p2t::Scale scale = p2t::Scale::fromName("C major");
 
     EXPECT_NO_THROW({
-        p2t::tune_to_scale(wavFile, scale, outputFile);
+        p2t::tuneToScale(wavFile, scale, outputFile);
     });
 }

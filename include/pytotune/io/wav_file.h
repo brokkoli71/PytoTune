@@ -13,26 +13,25 @@
 
 #ifndef PYTOTUNE_WAVREADER_H
 #define PYTOTUNE_WAVREADER_H
+#include <cstdint>
+#include <string>
 #include <vector>
 
-#include <string>
-#include <cstdint>
-
 namespace p2t {
-  /**
-   * @struct WavData
-   * @brief Represents decoded WAV audio data.
-   *
-   * The samples vector contains floating point samples normalized to the range [-1.0, 1.0].
-   * If numChannels > 1 the samples are interleaved (channel0, channel1, ...). TODO: might want to change that later.
-   */
-  struct WavData {
+/**
+ * @struct WavData
+ * @brief Represents decoded WAV audio data.
+ *
+ * The samples vector contains floating point samples normalized to the range [-1.0, 1.0].
+ * If numChannels > 1 the samples are interleaved (channel0, channel1, ...). TODO: might want to change that later.
+ */
+struct WavData {
     /**
      * @brief Sample rate in Hertz (Hz).
      *
      * Zero indicates no data or uninitialized.
      */
-    uint32_t sampleRate = 0; // in Hz
+    uint32_t sampleRate = 0;  // in Hz
 
     /**
      * @brief Number of channels (1 = mono, 2 = stereo, ...).
@@ -46,25 +45,25 @@ namespace p2t {
      * For multi-channel audio the layout is:
      *   sample0_chan0, sample0_chan1, ..., sample1_chan0, sample1_chan1, ...
      */
-    std::vector<float> samples; // interleaved if stereo
-  };
+    std::vector<float> samples;  // interleaved if stereo
+};
 
-  /**
-   * @class WavFile
-   * @brief Simple helper to load WAV files into a WavData structure.
-   *
-   * Use WavFile::load(path) to create an instance. The loader currently supports
-   * 16-bit PCM and 32-bit float WAV formats. Loading failures throw std::runtime_error.
-   */
-  class WavFile {
-  public:
+/**
+ * @class WavFile
+ * @brief Simple helper to load WAV files into a WavData structure.
+ *
+ * Use WavFile::load(path) to create an instance. The loader currently supports
+ * 16-bit PCM and 32-bit float WAV formats. Loading failures throw std::runtime_error.
+ */
+class WavFile {
+   public:
     explicit WavFile(WavData data);
 
     /**
      * @brief Get the loaded WAV data.
      * @return const WavData& Reference to the internal WavData.
      */
-    const WavData &data() const { return wavData_; }
+    const WavData &data() const { return wavData; }
 
     /**
      * @brief Load a WAV file from disk.
@@ -77,13 +76,12 @@ namespace p2t {
     static WavFile load(const std::string &path);
 
     void store(const std::string &path) const {
-      store(path, 1); // default to PCM
+        store(path, 1);  // default to PCM
     }
-
 
     void store(const std::string &path, uint16_t audioFormat) const;
 
-  private:
+   private:
     /**
      * @brief Default constructor is private; use the static load() factory.
      */
@@ -99,8 +97,8 @@ namespace p2t {
     /**
      * @brief Storage for the decoded WAV content.
      */
-    WavData wavData_;
-  };
-}
+    WavData wavData;
+};
+}  // namespace p2t
 
-#endif // PYTOTUNE_WAVREADER_H
+#endif  // PYTOTUNE_WAVREADER_H

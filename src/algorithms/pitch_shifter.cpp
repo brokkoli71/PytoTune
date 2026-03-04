@@ -25,18 +25,18 @@ namespace p2t {
                                         std::to_string(maxPitchFactor));
         }
 
-        const int buffer_size = static_cast<int>(std::pow(2, std::ceil(std::log2(maxPitchFactor)))) * 2 * windowing.
+        const int bufferSize = static_cast<int>(std::pow(2, std::ceil(std::log2(maxPitchFactor)))) * 2 * windowing.
                                 windowSize;
-        const int num_windows = samples.size() / windowing.stride;
+        const int numWindows = samples.size() / windowing.stride;
 #ifdef REIMPLEMENTED_WINDOWING
-        std::vector<float> lastPhase(buffer_size / 2 + 1, 0.0f);
-        std::vector<float> sumPhase(buffer_size / 2 + 1, 0.0f);
-        std::vector<std::vector<float> > fftWorkspace(num_windows, std::vector<float>(2 * buffer_size));
+        std::vector<float> lastPhase(bufferSize / 2 + 1, 0.0f);
+        std::vector<float> sumPhase(bufferSize / 2 + 1, 0.0f);
+        std::vector<std::vector<float> > fftWorkspace(numWindows, std::vector<float>(2 * bufferSize));
         std::vector<std::vector<float> > anaFreq(
-            num_windows, std::vector<float>(buffer_size));
+            numWindows, std::vector<float>(bufferSize));
 
         std::vector<std::vector<float> > anaMagn(
-            num_windows, std::vector<float>(buffer_size));
+            numWindows, std::vector<float>(bufferSize));
         std::vector<float> outData(samples.size(), 0.0f);
 
         const float expect = 2.f * static_cast<float>(M_PI) * static_cast<float>(windowing.stride) / static_cast<float>(
@@ -44,28 +44,28 @@ namespace p2t {
         const float freqPerBin = sampleRate / static_cast<float>(windowing.windowSize);
 
 #pragma omp parallel for ordered
-        for (int window_index = 0; window_index < num_windows; ++window_index) {
+        for (int windowIndex = 0; windowIndex < numWindows; ++windowIndex) {
             /* do windowing and re,im interleave */
             for (int k = 0; k < windowing.windowSize; k++) {
-                if (window_index * windowing.stride + k >= samples.size()) break;
+                if (windowIndex * windowing.stride + k >= samples.size()) break;
                 const float window = -.5f * std::cos(
                                          2.f * static_cast<float>(M_PI) * static_cast<float>(k) / static_cast<float>(
                                              windowing.windowSize)) + .5f;
-                fftWorkspace[window_index][2 * k] = samples[window_index * windowing.stride + k] * window;
-                fftWorkspace[window_index][2 * k + 1] = 0.;
+                fftWorkspace[windowIndex][2 * k] = samples[windowIndex * windowing.stride + k] * window;
+                fftWorkspace[windowIndex][2 * k + 1] = 0.;
             }
 
             /* ***************** ANALYSIS ******************* */
             /* do transform */
-            p2t::smbFft(fftWorkspace[window_index], windowing.windowSize, -1);
+            p2t::smbFft(fftWorkspace[windowIndex], windowing.windowSize, -1);
 
 
 #pragma omp ordered
             {
                 for (int k = 0; k <= windowing.windowSize / 2; k++) {
                     /* de-interlace FFT buffer */
-                    const float real = fftWorkspace[window_index][2 * k];
-                    const float imag = fftWorkspace[window_index][2 * k + 1];
+                    const float real = fftWorkspace[windowIndex][2 * k];
+                    const float imag = fftWorkspace[windowIndex][2 * k + 1];
 
                     /* compute magnitude and phase */
                     float magn = 2. * sqrt(real * real + imag * imag);
@@ -93,28 +93,28 @@ namespace p2t {
                     tmp = static_cast<float>(k) * freqPerBin + tmp * freqPerBin;
 
                     /* store magnitude and true frequency in analysis arrays */
-                    anaMagn[window_index][k] = magn;
-                    anaFreq[window_index][k] = tmp;
+                    anaMagn[windowIndex][k] = magn;
+                    anaFreq[windowIndex][k] = tmp;
                 }
             }
 
 
             /* ***************** PROCESSING ******************* */
             /* this does the actual pitch shifting */
-            std::vector<float> gSynFreq(buffer_size, 0.0f);
-            std::vector<float> gSynMagn(buffer_size, 0.0f);
-            const float factor = pitchFactors.data[window_index];
-            for (int k = 0; k <= buffer_size / 2; k++) {
+            std::vector<float> gSynFreq(bufferSize, 0.0f);
+            std::vector<float> gSynMagn(bufferSize, 0.0f);
+            const float factor = pitchFactors.data[windowIndex];
+            for (int k = 0; k <= bufferSize / 2; k++) {
                 int index = k * factor;
-                if (index <= buffer_size / 2) {
-                    gSynMagn[index] += anaMagn[window_index][k];
-                    gSynFreq[index] = anaFreq[window_index][k] * factor;
+                if (index <= bufferSize / 2) {
+                    gSynMagn[index] += anaMagn[windowIndex][k];
+                    gSynFreq[index] = anaFreq[windowIndex][k] * factor;
                 }
             }
 
             /* ***************** SYNTHESIS ******************* */
             /* this is the synthesis step */
-            for (int k = 0; k <= buffer_size / 2; k++) {
+            for (int k = 0; k <= bufferSize / 2; k++) {
                 /* get magnitude and true frequency from synthesis arrays */
                 float magn = gSynMagn[k];
                 float tmp = gSynFreq[k];
@@ -136,26 +136,26 @@ namespace p2t {
                 float phase = sumPhase[k];
 
                 /* get real and imag part and re-interleave */
-                fftWorkspace[window_index][2 * k] = magn * std::cos(phase);
-                fftWorkspace[window_index][2 * k + 1] = magn * std::sin(phase);
+                fftWorkspace[windowIndex][2 * k] = magn * std::cos(phase);
+                fftWorkspace[windowIndex][2 * k + 1] = magn * std::sin(phase);
             }
 
             /* zero negative frequencies */
             for (int k = windowing.windowSize + 2; k < 2 * windowing.windowSize; k++)
-                fftWorkspace[window_index][k] = 0.;
+                fftWorkspace[windowIndex][k] = 0.;
 
             /* do inverse transform */
-            smbFft(fftWorkspace[window_index], windowing.windowSize, 1);
+            smbFft(fftWorkspace[windowIndex], windowing.windowSize, 1);
 
             for (int k = 0; k < windowing.windowSize; ++k) {
-                if (window_index * windowing.stride + k >= samples.size()) break;
+                if (windowIndex * windowing.stride + k >= samples.size()) break;
                 float window =
                         -0.5f * std::cos(2.0f * M_PI * k / windowing.windowSize) + 0.5f;
 
 #pragma omp atomic update
-                outData[window_index * windowing.stride + k] +=
+                outData[windowIndex * windowing.stride + k] +=
                         2.0f * window *
-                        fftWorkspace[window_index][2 * k] /
+                        fftWorkspace[windowIndex][2 * k] /
                         static_cast<float>(windowing.windowSize / 2 * windowing.getOsamp());
             }
         }
@@ -164,14 +164,14 @@ namespace p2t {
 
 
 #else
-        std::vector<float> inFifo(buffer_size, 0.0f);
-        std::vector<float> outFifo(buffer_size, 0.0f);
-        std::vector<float> fftWorkspace(2 * buffer_size, 0.0f);
-        std::vector<float> lastPhase(buffer_size / 2 + 1, 0.0f);
-        std::vector<float> sumPhase(buffer_size / 2 + 1, 0.0f);
-        std::vector<float> outputAccum(2 * buffer_size, 0.0f);
-        std::vector<float> anaFreq(buffer_size, 0.0f);
-        std::vector<float> anaMagn(buffer_size, 0.0f);
+        std::vector<float> inFifo(bufferSize, 0.0f);
+        std::vector<float> outFifo(bufferSize, 0.0f);
+        std::vector<float> fftWorkspace(2 * bufferSize, 0.0f);
+        std::vector<float> lastPhase(bufferSize / 2 + 1, 0.0f);
+        std::vector<float> sumPhase(bufferSize / 2 + 1, 0.0f);
+        std::vector<float> outputAccum(2 * bufferSize, 0.0f);
+        std::vector<float> anaFreq(bufferSize, 0.0f);
+        std::vector<float> anaMagn(bufferSize, 0.0f);
 
         std::vector<float> outData(samples.size(), 0.0f);
 
@@ -243,8 +243,8 @@ namespace p2t {
 
                 /* ***************** PROCESSING ******************* */
                 /* this does the actual pitch shifting */
-                std::vector<float> gSynFreq(buffer_size, 0.0f);
-                std::vector<float> gSynMagn(buffer_size, 0.0f);
+                std::vector<float> gSynFreq(bufferSize, 0.0f);
+                std::vector<float> gSynMagn(bufferSize, 0.0f);
                 float factor = pitchFactors.data[windowIndex];
                 for (int k = 0; k <= fftFrameSize2; k++) {
                     int index = k * factor;
