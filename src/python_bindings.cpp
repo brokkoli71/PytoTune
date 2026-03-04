@@ -12,6 +12,8 @@ namespace py = pybind11;
 static p2t::PitchRange singerToPitchRange(const std::string &singer) {
     if (singer == "human") {
         return p2t::VoiceRanges::HUMAN;
+    } else if (singer == "piano") {
+        return p2t::VoiceRanges::PIANO;
     } else if (singer == "man") {
         return p2t::VoiceRanges::MAN;
     } else if (singer == "woman") {
@@ -40,18 +42,19 @@ PYBIND11_MODULE(pytotune, m) {
 
     // Bind PitchRange so Python can construct ranges and pass them to tune functions.
     py::class_<p2t::PitchRange>(m, "PitchRange")
-        .def(py::init<float, float>(), py::arg("min"), py::arg("max"))
-        .def_readwrite("min", &p2t::PitchRange::min)
-        .def_readwrite("max", &p2t::PitchRange::max)
-        .def("__repr__", [](const p2t::PitchRange &p) {
-            return "<PitchRange min=" + std::to_string(p.min) + " max=" + std::to_string(p.max) + ">";
-        });
+            .def(py::init<float, float>(), py::arg("min"), py::arg("max"))
+            .def_readwrite("min", &p2t::PitchRange::min)
+            .def_readwrite("max", &p2t::PitchRange::max)
+            .def("__repr__", [](const p2t::PitchRange &p) {
+                return "<PitchRange min=" + std::to_string(p.min) + " max=" + std::to_string(p.max) + ">";
+            });
 
     // Expose helper to map singer names to PitchRange
     m.def("singer_to_pitch_range", &singerToPitchRange, "Convert singer name to a PitchRange", py::arg("singer"));
 
     // Expose common voice ranges as module attributes for convenience
     m.attr("VoiceRange_HUMAN") = py::cast(p2t::VoiceRanges::HUMAN);
+    m.attr("VoiceRange_PIANO") = py::cast(p2t::VoiceRanges::PIANO);
     m.attr("VoiceRange_MAN") = py::cast(p2t::VoiceRanges::MAN);
     m.attr("VoiceRange_WOMAN") = py::cast(p2t::VoiceRanges::WOMAN);
     m.attr("VoiceRange_BASS") = py::cast(p2t::VoiceRanges::BASS);
@@ -63,46 +66,46 @@ PYBIND11_MODULE(pytotune, m) {
     m.attr("VoiceRange_CAT_PURR") = py::cast(p2t::VoiceRanges::CAT_PURR);
 
     py::class_<p2t::Scale>(m, "Scale")
-        .def(py::init<float, float, std::vector<float> >(),
-             py::arg("base_note"),
-             py::arg("repeat_factor"),
-             py::arg("notes"))
+            .def(py::init<float, float, std::vector<float> >(),
+                 py::arg("base_note"),
+                 py::arg("repeat_factor"),
+                 py::arg("notes"))
 
-        .def_static("from_name",
-                    &p2t::Scale::fromName,
-                    py::arg("name"),
-                    py::arg("tuning") = DEFAULT_A4)
+            .def_static("from_name",
+                        &p2t::Scale::fromName,
+                        py::arg("name"),
+                        py::arg("tuning") = DEFAULT_A4)
 
-        .def_static("from_mode_name",
-                    &p2t::Scale::fromModeName,
-                    py::arg("mode_name"),
-                    py::arg("base_note"))
+            .def_static("from_mode_name",
+                        &p2t::Scale::fromModeName,
+                        py::arg("mode_name"),
+                        py::arg("base_note"))
 
-        .def_static("from_mode",
-                    &p2t::Scale::fromMode,
-                    py::arg("mode"),
-                    py::arg("base_note"))
+            .def_static("from_mode",
+                        &p2t::Scale::fromMode,
+                        py::arg("mode"),
+                        py::arg("base_note"))
 
-        .def("closest_pitch",
-             &p2t::Scale::getClosestPitchInScale,
-             py::arg("pitch"))
+            .def("closest_pitch",
+                 &p2t::Scale::getClosestPitchInScale,
+                 py::arg("pitch"))
 
-        .def_property(
-            "base_note",
-            &p2t::Scale::getBaseNote,
-            &p2t::Scale::setBaseNote)
+            .def_property(
+                "base_note",
+                &p2t::Scale::getBaseNote,
+                &p2t::Scale::setBaseNote)
 
-        .def_property(
-            "repeat_factor",
-            &p2t::Scale::getRepeatFactor,
-            &p2t::Scale::setRepeatFactor)
+            .def_property(
+                "repeat_factor",
+                &p2t::Scale::getRepeatFactor,
+                &p2t::Scale::setRepeatFactor)
 
-        .def_property(
-            "notes",
-            [](const p2t::Scale &s) {
-                return s.getNotes();
-            },
-            &p2t::Scale::setNotes);
+            .def_property(
+                "notes",
+                [](const p2t::Scale &s) {
+                    return s.getNotes();
+                },
+                &p2t::Scale::setNotes);
 
     // Make pitch_range optional by defaulting to HUMAN (PitchRange is registered above)
     m.def("tuneToMidi", &p2t::tuneToMidi, "Tune a WAV file using a MIDI file as reference",

@@ -14,7 +14,7 @@ void printUsage() {
     std::cout << " Optionally one can specify a frequency range for the pitch detection, by the following 2 options:" <<
             std::endl;
     std::cout <<
-            " - <singer>: Will select a default range. Options are 'hearable' (all hearable frequencies), 'human', 'man', 'woman', 'bass', 'tenor', 'bariton', 'alto', 'soprano', 'cat'. Default is 'human'"
+            " - <singer>: Will select a default range. Options are 'hearable' (all hearable frequencies), 'piano' (musically sensible), 'human', 'man', 'woman', 'bass', 'tenor', 'bariton', 'alto', 'soprano', 'cat'. Default is 'human'"
             << std::endl;
     std::cout << " - <fmin> <fmax>: Minimum and maximum detectable frequency" << std::endl;
 }
@@ -22,6 +22,8 @@ void printUsage() {
 p2t::PitchRange singerToPitchRange(const std::string &singer) {
     if (singer == "human") {
         return p2t::VoiceRanges::HUMAN;
+    } else if (singer == "piano") {
+        return p2t::VoiceRanges::PIANO;
     } else if (singer == "man") {
         return p2t::VoiceRanges::MAN;
     } else if (singer == "woman") {

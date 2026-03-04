@@ -21,6 +21,8 @@ namespace p2t {
     namespace VoiceRanges {
         // Basic categories
         constexpr PitchRange HEARABLE = {20.f, 20000.f};
+        constexpr PitchRange PIANO = {27.5f, 4186.f};
+
         constexpr PitchRange MAN = {82.41f, 523.25f}; // E2 - C5
         constexpr PitchRange WOMAN = {175.00f, 1046.50f}; // F3 - C6
         constexpr PitchRange HUMAN = {82.41f, 1046.50f}; // E2 - C6
@@ -33,7 +35,7 @@ namespace p2t {
         constexpr PitchRange SOPRANO = {261.63f, 1046.50f}; // C4 - C6
 
         constexpr PitchRange CAT_PURR = {25.f, 150.f};
-    }
+    } // namespace VoiceRanges
 
     class YINPitchDetector {
     public:
@@ -45,12 +47,12 @@ namespace p2t {
          * @return A PitchDetection struct containing the detected pitch information.
          */
         [[nodiscard]] WindowedData<float> detectPitch(const WavData &audioBuffer, PitchRange pitchRange,
-                                                       float threshold) const;
+                                                      float threshold) const;
 
         /**
-        * Constructor of the PitchDetector class.
-        * @param windowing The windowing of all future pitch detection runs
-        */
+         * Constructor of the PitchDetector class.
+         * @param windowing The windowing of all future pitch detection runs
+         */
         explicit YINPitchDetector(Windowing windowing);
 
     private:
@@ -65,7 +67,6 @@ namespace p2t {
 
         static std::vector<float> convolve(const std::vector<float> &signal, const std::vector<float> &kernel);
     };
-}
+} // namespace p2t
 
-
-#endif //PYTOTUNE_PITCH_DETECTOR_H
+#endif  // PYTOTUNE_PITCH_DETECTOR_H
