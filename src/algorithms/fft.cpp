@@ -21,11 +21,11 @@
 namespace p2t {
     void smbFft(std::vector<float> &fftBuffer, const int fftFrameSize, const int sign) {
         if (fftFrameSize <= 0) return;
-        const int N = fftFrameSize;
-        if (fftBuffer.size() < 2 * N) return;
+        const int n = fftFrameSize;
+        if (fftBuffer.size() < 2 * n) return;
 
         // Check N is power of two, compute numStages
-        int t = N;
+        int t = n;
         int numStages = 0;
         while (t > 1) {
             if (t % 2 != 0) return; // not power of two
@@ -34,7 +34,7 @@ namespace p2t {
         }
 
         // Bit reversal on complex indices 0..N-1
-        auto bit_reverse = [&](int x, const int bits)-> int {
+        auto bitReverse = [&](int x, const int bits)-> int {
             int y = 0;
             for (int i = 0; i < bits; ++i) {
                 y = (y << 1) | (x & 1);
@@ -44,8 +44,8 @@ namespace p2t {
         };
 
         int const bits = numStages;
-        for (int i = 0; i < N; ++i) {
-            int j = bit_reverse(i, bits);
+        for (int i = 0; i < n; ++i) {
+            int j = bitReverse(i, bits);
             if (j > i) {
                 std::swap(fftBuffer[2 * i], fftBuffer[2 * j]);
                 std::swap(fftBuffer[2 * i + 1], fftBuffer[2 * j + 1]);
@@ -54,7 +54,7 @@ namespace p2t {
 
         // Danielson-Lanczos / iterative radix-2
         // le = current DFT length in complex samples: 2,4,8,...,N
-        for (int le = 2; le <= N; le <<= 1) {
+        for (int le = 2; le <= n; le <<= 1) {
             int le2 = le >> 1; // half size (butterfly distance)
             // compute basic angular increment for this stage
             // angle increment for k = 1: theta = sign * 2π / le
@@ -79,7 +79,7 @@ namespace p2t {
                 const float wi = std::sin(static_cast<float>(k) * theta);
 #endif
                 // Perform butterflies for this twiddle across all blocks
-                for (int blockStart = 0; blockStart < N; blockStart += le) {
+                for (int blockStart = 0; blockStart < n; blockStart += le) {
                     int i1 = blockStart + k; // index of upper complex sample
                     int i2 = i1 + le2; // index of lower complex sample
 
@@ -108,11 +108,11 @@ namespace p2t {
 
 #if USE_PREDEFINED_TWIDDLES
                 // Wk+1 = Wk * W1
-                float next_wr = wr * wpr - wi * wpi;
-                float next_wi = wr * wpi + wi * wpr;
+                float nextWr = wr * wpr - wi * wpi;
+                float nextWi = wr * wpi + wi * wpr;
 
-                wr = next_wr;
-                wi = next_wi;
+                wr = nextWr;
+                wi = nextWi;
 #endif
             }
         }

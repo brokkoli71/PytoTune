@@ -39,12 +39,12 @@ namespace p2t {
     public:
         /**
          * Detects the pitch of the given audio buffer using the YIN algorithm with preset parameters.
-         * @param audio_buffer The audio buffer containing the WavData.
-         * @param pitch_range Minimum and maximum frequency to consider (in Hz).
+         * @param audioBuffer The audio buffer containing the WavData.
+         * @param pitchRange Minimum and maximum frequency to consider (in Hz).
          * @param threshold Threshold for pitch detection confidence (between 0 and 1).
          * @return A PitchDetection struct containing the detected pitch information.
          */
-        [[nodiscard]] WindowedData<float> detect_pitch(const WavData &audio_buffer, PitchRange pitch_range,
+        [[nodiscard]] WindowedData<float> detectPitch(const WavData &audioBuffer, PitchRange pitchRange,
                                                        float threshold) const;
 
         /**
@@ -59,9 +59,9 @@ namespace p2t {
         // Helper function only used internally
         static inline float sinc(float x);
 
-        static std::vector<float> design_lowpass_fir(int taps, float cutoff);
+        static std::vector<float> designLowpassFir(int taps, float cutoff);
 
-        static std::vector<float> decimate_zero_phase(const std::vector<float> &input, int factor);
+        static std::vector<float> decimateZeroPhase(const std::vector<float> &input, int factor);
 
         static std::vector<float> convolve(const std::vector<float> &signal, const std::vector<float> &kernel);
     };
