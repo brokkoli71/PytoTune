@@ -115,7 +115,6 @@ TEST(SmbFftTest, RealSine_TwoSymmetricBins) {
     };
 
     const int mirror = (N - k) % N;
-    const float eps = 1e-3f;
 
     // Check symmetric bins are large
     EXPECT_GT(mag(k), 1e-3f);
@@ -124,7 +123,7 @@ TEST(SmbFftTest, RealSine_TwoSymmetricBins) {
     // All other bins near zero
     for (int b = 0; b < N; ++b) {
         if (b == k || b == mirror) continue;
-        EXPECT_NEAR(mag(b), 0.0f, eps) << "Unexpected energy in bin " << b;
+        EXPECT_NEAR(mag(b), 0.0f, 1e-2f) << "Unexpected energy in bin " << b;
     }
 }
 

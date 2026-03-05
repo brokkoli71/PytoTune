@@ -11,78 +11,88 @@
 
 #define OPTIMIZATION_LVL 2 // 0: none, 1: loop unrolling, 2: SIMD
 
+#include <cmath>
+#include "hwy/highway.h"
+#include "hwy/aligned_allocator.h"
+
+using namespace hwy::HWY_NAMESPACE;
+# define USE_HWY 1
+
 namespace p2t {
-    WindowedData<float> YINPitchDetector::detect_pitch(const WavData &audio_buffer, const int f_min, const int f_max,
-                                                       const float threshold) const {
-        if (f_min <= 0 || f_min >= f_max) {
-            throw std::invalid_argument("f_min and f_max must be positive and f_min must be less than f_max.");
-        }
-        const int tau_min = audio_buffer.sampleRate / f_max;
-        const int tau_max = audio_buffer.sampleRate / f_min;
+    WindowedData<float> YINPitchDetector::detectPitch(const WavData &audioBuffer, const PitchRange pitchRange,
+                                                      const float threshold = 0.4) const {
+        constexpr int decimationFactor = 2; // or parameterize this
 
-        std::vector<float> pitchValues;
+        std::vector<float> downsampledAudio =
+                decimateZeroPhase(audioBuffer.samples, decimationFactor);
 
-        for (int i = 0; i < audio_buffer.samples.size(); i += this->windowing.stride) {
-            const int window_end = std::min(i + this->windowing.windowSize, (int) audio_buffer.samples.size());
 
-            std::vector diff(tau_max + 1, 0.0f);
-            for (int tau = 0; tau <= tau_max; ++tau) { // Calculate for low tau for CMND
+        const unsigned int downsampledFs =
+                audioBuffer.sampleRate / decimationFactor;
+
+        const unsigned int tauMin = downsampledFs / static_cast<int>(pitchRange.max);
+        const unsigned int tauMax = downsampledFs / static_cast<int>(pitchRange.min);
+
+        const unsigned int numWindows = (downsampledAudio.size() - this->windowing.windowSize) / this->windowing.
+                                        stride + 1;
+        std::vector<float> pitchValues(numWindows);
+#pragma omp parallel for schedule(dynamic, 16)
+        // prevent false sharing of pitchValues by using dynamic scheduling with small chunks
+        for (int i = 0; i < numWindows; i++) {
+            // Process each window
+            const int windowStart = i * this->windowing.stride;
+            const int windowEnd = std::min(windowStart + this->windowing.windowSize,
+                                           static_cast<int>(downsampledAudio.size()));
+            std::vector<float> windowSamples(
+                downsampledAudio.begin() + windowStart,
+                downsampledAudio.begin() + windowEnd);
+
+            // --- Silence / low-energy detection ---
+            float energy = 0.0f;
+            for (float f: windowSamples) {
+                energy += f * f;
+            }
+            energy /= windowSamples.size(); // mean square
+
+            constexpr float silenceThreshold = 1e-6f;
+
+            if (energy < silenceThreshold) {
+                pitchValues[i] = 0.0f; // 0 Hz = unvoiced
+                continue;
+            }
+
+            std::vector<float> diff(tauMax + 1);
+            for (unsigned int tau = tauMin; tau <= tauMax; ++tau) {
+                // computation of sum_{j=0}^{N-1} (x[j] - x[j+tau])^2
+                size_t k = 0;
+                const float *aPtr = windowSamples.data();
+                const float *bPtr = aPtr + tau;
                 float sum = 0.0f;
-                int j = i;
-                const int limit = window_end - tau;
-# if OPTIMIZATION_LVL >= 2 && (defined(__ARM_NEON) || defined(__ARM_NEON__))
-                // TODO do we want this anyway?
-                // Optimization for Apple Silicon / ARM64
-                float32x4_t v_sum = vdupq_n_f32(0.0f);
-                for (; j <= limit - 4; j += 4) {
-                    float32x4_t v_a = vld1q_f32(&audio_buffer.samples[j]);
-                    float32x4_t v_b = vld1q_f32(&audio_buffer.samples[j + tau]);
-                    float32x4_t v_diff = vsubq_f32(v_a, v_b);
-                    // Multiply-accumulate: sum += diff * diff
-                    v_sum = vmlaq_f32(v_sum, v_diff, v_diff);
-                }
-                // Horizontal sum of the vector
-                sum += vaddvq_f32(v_sum);
+                const size_t n = (windowSamples.size() > tau) ? (windowSamples.size() - tau) : 0;
+                if (n > 0) {
+# if USE_HWY
+                    // Vectorized computation using Highway
+                    ScalableTag<float> d;
+                    auto vecAcc = Set(d, 0.0f);
+                    const size_t lanes = Lanes(d);
 
-# elif OPTIMIZATION_LVL >= 2 && defined(__AVX2__)
-                // Optimization for modern x86_64
-                __m256 v_sum = _mm256_setzero_ps();
-                for (; j <= limit - 8; j += 8) {
-                    // TODO allign loads?
-                    __m256 v_a = _mm256_loadu_ps(&audio_buffer.samples[j]);
-                    __m256 v_b = _mm256_loadu_ps(&audio_buffer.samples[j + tau]);
-                    __m256 v_diff = _mm256_sub_ps(v_a, v_b);
-                    // Multiply-accumulate: sum += diff * diff (Requires FMA support, usually present with AVX2)
-                    // If FMA isn't available, use: v_sum = _mm256_add_ps(v_sum, _mm256_mul_ps(v_diff, v_diff));
-                    v_sum = _mm256_fmadd_ps(v_diff, v_diff, v_sum);
-                }
-                // Horizontal sum for AVX2
-                float temp[8];
-                _mm256_storeu_ps(temp, v_sum);
-                for (float t: temp) sum += t;
-# elif OPTIMIZATION_LVL >= 1
-                // loop unrolling
-                float sum0 = 0.0f, sum1 = 0.0f, sum2 = 0.0f, sum3 = 0.0f;
-                while (j < limit - 3) {
-                    float d0 = audio_buffer.samples[j] - audio_buffer.samples[j + tau];
-                    float d1 = audio_buffer.samples[j + 1] - audio_buffer.samples[j + 1 + tau];
-                    float d2 = audio_buffer.samples[j + 2] - audio_buffer.samples[j + 2 + tau];
-                    float d3 = audio_buffer.samples[j + 3] - audio_buffer.samples[j + 3 + tau];
+                    for (; k + lanes <= n; k += lanes) {
+                        const auto va = Load(d, aPtr + k);
+                        const auto vb = Load(d, bPtr + k);
+                        const auto diffv = va - vb;
+                        vecAcc = vecAcc + diffv * diffv;
+                    }
 
-                    sum0 += d0 * d0;
-                    sum1 += d1 * d1;
-                    sum2 += d2 * d2;
-                    sum3 += d3 * d3;
-                    j += 4;
-                }
-                sum += (sum0 + sum1 + sum2 + sum3);
-
-
-#endif
-                // scalar fallback for remaining samples or if OPTIMIZATION_LVL == 0
-                for (; j < limit; ++j) {
-                    const float delta = audio_buffer.samples[j] - audio_buffer.samples[j + tau];
-                    sum += delta * delta;
+                    // Horizontal reduce SIMD accumulator into scalar sum
+                    std::vector<float> tmp(lanes);
+                    Store(vecAcc, d, tmp.data());
+                    for (size_t i = 0; i < lanes; ++i) sum += tmp[i];
+# endif
+                    // Collect remaining elements
+                    for (; k < n; ++k) {
+                        const float delta = aPtr[k] - bPtr[k];
+                        sum += delta * delta;
+                    }
                 }
                 diff[tau] = sum;
             }
@@ -99,51 +109,198 @@ namespace p2t {
                 }
             }
 
-            int best_tau = -1;
-            for (int tau = tau_min; tau <= tau_max; ++tau) {
-                if (cmnd[tau] < threshold) {
-                    // Determine if this is a local minimum
-                    while (tau + 1 <= tau_max && cmnd[tau + 1] < cmnd[tau]) {
-                        tau++;
-                    }
-                    best_tau = tau;
+            // CMND (Cumulative Mean Normalized Difference Function)
+            std::vector<float> cmnd(tauMax + 1);
+            float runningSum = 1.0f;
+            for (int tau = 1; tau <= tauMax; ++tau) {
+                runningSum += diff[tau];
+                cmnd[tau] = diff[tau] * static_cast<float>(tau) / runningSum;
+            }
+
+            // Find the pitch for this window based on the cmnd function and threshold
+            unsigned int bestTau = 0;
+
+            // Search for first local minimum below threshold
+            for (unsigned int tau = tauMin + 1; tau < tauMax - 1; ++tau) {
+                if (cmnd[tau] < threshold &&
+                    cmnd[tau] < cmnd[tau - 1] &&
+                    cmnd[tau] <= cmnd[tau + 1]) {
+                    bestTau = tau;
                     break;
                 }
             }
-            // Fallback: Global minimum if no threshold passed
-            if (best_tau == -1) {
-                best_tau = tau_min;
-                for (int tau = tau_min + 1; tau <= tau_max; ++tau) {
-                    if (cmnd[tau] < cmnd[best_tau]) {
-                        best_tau = tau;
+
+            // Fallback: global minimum in range if nothing passed threshold
+            if (bestTau == 0) {
+                bestTau = tauMin;
+                for (int tau = tauMin + 1; tau <= tauMax; ++tau) {
+                    if (cmnd[tau] < cmnd[bestTau]) {
+                        bestTau = tau;
                     }
                 }
             }
 
-            // std::cout << "diff[" << best_tau << "] = " << diff[best_tau] << std::endl;
-            // std::cout << static_cast<float>(audio_buffer->sampleRate) / best_tau << std::endl;
+            // Quadratic interpolation around best_tau (on CMND)
+            auto refinedTau = static_cast<float>(bestTau);
 
-            // quadratic interpolation to refine the estimate if best_tau is not at the boundaries
-            auto refined_tau = static_cast<float>(best_tau);
-            if (best_tau > tau_min && best_tau < tau_max) {
-                const auto left = cmnd[best_tau - 1];
-                const auto center = cmnd[best_tau];
-                const auto right = cmnd[best_tau + 1];
+            if (bestTau > tauMin && bestTau < tauMax) {
+                const float left = cmnd[bestTau - 1];
+                const float center = cmnd[bestTau];
+                const float right = cmnd[bestTau + 1];
 
-                auto denom = 2 * (left + right - 2 * center);
-                if (std::abs(denom) > 1e-6) {
-                    refined_tau += (left - right) / denom;
+                const float denom = 2.0f * (left - 2.0f * center + right);
+
+                if (std::abs(denom) > 1e-12f) {
+                    const float delta = (left - right) / denom;
+                    refinedTau += delta;
                 }
             }
-
-            float pitch = (refined_tau > 0) ? (static_cast<float>(audio_buffer.sampleRate) / refined_tau) : 0.0f;
-            pitchValues.push_back(pitch);
+            pitchValues[i] = static_cast<float>(downsampledFs) / refinedTau;
         }
+
+        // smooth the pitch values by removing octave jumps down
+        for (size_t i = 1; i < pitchValues.size(); ++i) {
+            float octaveJumpThreshold = pitchValues[i - 1] / 1.5f;
+            // if the pitch drops by more than a perfect fifth, it's likely an octave jump
+            if (pitchValues[i] < octaveJumpThreshold) {
+                pitchValues[i] *= 2.0f; // assume it's an octave jump and correct it
+            }
+        }
+        // smooth by median filter with window size 5
+        std::vector<float> smoothedPitches = pitchValues;
+        const int medianWindow = 5;
+        for (int i = 0; i < pitchValues.size(); ++i) {
+            std::vector<float> window;
+            for (int j = -medianWindow / 2; j <= medianWindow / 2; ++j) {
+                if (j + i >= 0 && i + j < pitchValues.size()) {
+                    window.push_back(pitchValues[i + j]);
+                }
+            }
+            std::sort(window.begin(), window.end());
+            smoothedPitches[i] = window[window.size() / 2]; // median
+        }
+
+        // Get original windowing
+        const unsigned int uncompressedNumWindows = audioBuffer.samples.size() / this->windowing.stride;
+        std::vector<float> uncompressedPitchValues(uncompressedNumWindows, 0.0f);
+
+        for (int i = 0; i < uncompressedNumWindows; ++i) {
+            int j = i / decimationFactor;
+            if (j >= smoothedPitches.size() - 1) {
+                uncompressedPitchValues[i] = smoothedPitches[smoothedPitches.size() - 1];
+            } else {
+                // Linear Interpolation
+                const float start = smoothedPitches[j];
+                const float end = start == 0 ? 0 : (smoothedPitches[j + 1] == 0 ? start : smoothedPitches[j + 1]);
+                const float frac = static_cast<float>(i % decimationFactor) / decimationFactor;
+                uncompressedPitchValues[i] = (1 - frac) * start + frac * end;
+            }
+        }
+
         return {
-            this->windowing, pitchValues
+            this->windowing, uncompressedPitchValues
         };
     }
 
     YINPitchDetector::YINPitchDetector(const Windowing windowing) : windowing(windowing) {
+    }
+
+    inline float YINPitchDetector::sinc(const float x) {
+        if (std::abs(x) < 1e-8f) return 1.0f;
+        return static_cast<float>(std::sin(M_PI * x) / (M_PI * x));
+    }
+
+    // Design low-pass FIR using windowed-sinc (Hamming window)
+    std::vector<float> YINPitchDetector::designLowpassFir(const int taps, const float cutoff) {
+        std::vector<float> h(taps);
+        const int m = taps - 1;
+
+        for (int n = 0; n < taps; ++n) {
+            float centered = n - m / 2.0f;
+
+            float ideal = 2.0f * cutoff * sinc(2.0f * cutoff * centered);
+
+            float window = 0.54f - 0.46f * std::cos(2.0f * M_PI * n / m);
+
+            h[n] = ideal * window;
+        }
+
+        // Normalize for unity DC gain
+        float sum = 0.0f;
+        for (float v: h) sum += v;
+        for (float &v: h) v /= sum;
+
+        return h;
+    }
+
+    // Convolution (valid for FIR filtering)
+    std::vector<float> YINPitchDetector::convolve(
+        const std::vector<float> &signal,
+        const std::vector<float> &kernel) {
+        const unsigned int signalSize = signal.size();
+        const unsigned int kernalSize = kernel.size();
+        std::vector<float> output(signalSize, 0.0f);
+
+        for (int n = 0; n < signalSize; ++n) {
+            float acc = 0.0f;
+            for (int k = 0; k < kernalSize; ++k) {
+                int idx = n - k;
+                if (idx >= 0 && idx < signalSize)
+                    acc += kernel[k] * signal[idx];
+            }
+            output[n] = acc;
+        }
+
+        return output;
+    }
+
+    // Zero-phase decimation
+    std::vector<float> YINPitchDetector::decimateZeroPhase(const std::vector<float> &input, const int factor) {
+        if (factor <= 1)
+            return input;
+
+        if (input.empty())
+            return {};
+
+        // FIR parameters
+        constexpr int taps = 101; // increase for sharper cutoff
+        const float cutoff = 0.5f / static_cast<float>(factor); // normalized cutoff
+
+        auto fir = designLowpassFir(taps, cutoff);
+
+        // Forward filter
+        auto forward = convolve(input, fir);
+
+        // Reverse
+        std::vector<float> reversed(forward.rbegin(), forward.rend());
+
+        // Backward filter
+        auto backward = convolve(reversed, fir);
+
+        // Reverse again → zero phase
+        std::vector<float> filtered(backward.rbegin(), backward.rend());
+
+        // Downsample using HWY-aligned memory
+        const size_t outputSize = filtered.size() / factor;
+
+        // Allocate HWY-aligned memory (aligned to vector width for optimal SIMD access)
+        float * HWY_RESTRICT alignedOutput = static_cast<float *>(
+            hwy::AllocateAlignedBytes(outputSize * sizeof(float), nullptr, nullptr));
+
+        if (!alignedOutput) {
+            throw std::runtime_error("Failed to allocate aligned memory for decimation");
+        }
+
+        // Downsample into aligned buffer
+        size_t outIdx = 0;
+        for (size_t i = 0; i < filtered.size(); i += factor) {
+            alignedOutput[outIdx++] = filtered[i];
+        }
+
+        // Copy to std::vector and free aligned memory
+        std::vector<float> output(alignedOutput, alignedOutput + outputSize);
+        hwy::FreeAlignedBytes(alignedOutput, nullptr, nullptr);
+
+        return output;
     }
 }

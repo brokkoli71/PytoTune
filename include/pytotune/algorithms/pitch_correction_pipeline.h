@@ -1,5 +1,6 @@
 #ifndef PYTOTUNE_PITCH_CORRECTION_PIPELINE_H
 #define PYTOTUNE_PITCH_CORRECTION_PIPELINE_H
+#include "yin_pitch_detector.h"
 #include "pytotune/io/midi_file.h"
 #include "pytotune/io/wav_file.h"
 #include  "pytotune/data-structures/windowing.h"
@@ -13,11 +14,11 @@ namespace p2t {
         WavFile matchMidi(const WavFile &src,
                           const MidiFile &midiFile,
                           Windowing windowing = DEFAULT_WINDOWING,
-                          float tuning = DEFAULT_A4);
+                          float tuning = DEFAULT_A4, PitchRange pitchRange = VoiceRanges::HUMAN);
 
         WavFile roundToScale(const WavFile &src,
                              const Scale &scale,
-                             Windowing windowing = DEFAULT_WINDOWING);
+                             Windowing windowing = DEFAULT_WINDOWING, PitchRange pitchRange = VoiceRanges::HUMAN);
     };
 }
 

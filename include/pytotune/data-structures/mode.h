@@ -32,7 +32,7 @@ namespace p2t {
     /**
      * Stores all modes referencable by name.
      */
-    extern const std::unordered_map<std::string, Mode> modes;
+    extern const std::unordered_map<std::string, Mode> MODES;
 
     /**
      * Groups helper functions for scale creation, where the scale is based on equal divisions of some interval.

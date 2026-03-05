@@ -1,5 +1,7 @@
 #include "pytotune/algorithms/pitch_correction_pipeline.h"
 
+#include <omp.h>
+
 #include <algorithm>
 #include <iostream>
 
@@ -7,57 +9,80 @@
 #include "pytotune/algorithms/yin_pitch_detector.h"
 
 namespace p2t {
-    WavFile PitchCorrectionPipeline::matchMidi(const WavFile &src,
-                                               const MidiFile &midiFile,
-                                               Windowing windowing,
-                                               const float tuning) {
-        const float sampleRate = static_cast<float>(src.data().sampleRate);
+WavFile PitchCorrectionPipeline::matchMidi(const WavFile &src,
+                                           const MidiFile &midiFile,
+                                           Windowing windowing,
+                                           const float tuning,
+                                           const PitchRange pitchRange) {
+    const auto sampleRate = static_cast<float>(src.data().sampleRate);
 
-        // Silence detectotr TODO
+    YINPitchDetector ypd(windowing);
+    double start = omp_get_wtime();
+    WindowedData<float> pitches = ypd.detectPitch(src.data(), pitchRange, 0.05f);
 
-        // TODO Fix the yin pitcher to use Windowing
-        YINPitchDetector ypd(windowing);
-        WindowedData<float> pitches = ypd.detect_pitch(src.data(), 20, 2000, 0.05f);
+    double middle = omp_get_wtime();
 
-        WindowedData<float> targetPitches = midiFile.getWindowedHighestPitches(windowing, sampleRate, tuning);
+    WindowedData<float> targetPitches = midiFile.getWindowedHighestPitches(windowing, sampleRate, tuning);
 
-        std::vector<float> pitchCorrectionFactors(pitches.data.size());
-        for (int i = 0; i < pitches.data.size(); ++i) {
-            pitchCorrectionFactors[i] = targetPitches.data[i] / pitches.data[i];
-        }
-
-        PitchShifter ps(windowing, sampleRate);
-        std::vector<float> outValues = ps.run(src.data().samples, {windowing, pitchCorrectionFactors});
-
-        return WavFile(WavData(static_cast<unsigned int>(sampleRate), 1, outValues));
+    std::vector<float> pitchCorrectionFactors(pitches.data.size());
+    for (int i = 0; i < pitches.data.size(); ++i) {
+        pitchCorrectionFactors[i] = (pitches.data[i] == 0 || targetPitches.data[i] == 0)
+                                        ? 1.f
+                                        : targetPitches.data[i] / pitches.data[i];
     }
 
-    WavFile PitchCorrectionPipeline::roundToScale(const WavFile &src,
-                                                  const Scale &scale,
-                                                  Windowing windowing) {
-        const float sampleRate = static_cast<float>(src.data().sampleRate);
+    PitchShifter ps(windowing, sampleRate);
+    std::vector<float> outValues = ps.run(src.data().samples, {windowing, pitchCorrectionFactors});
+    double end = omp_get_wtime();
 
-        // TODO Silence Detector
+    std::cout << "Time for Pitch Detection: " << middle - start << ". " << (middle - start) / (end - start) * 100 << "%" << std::endl;
+    std::cout << "Time for Pitch Shifting: " << end - middle << ". " << (end - middle) / (end - start) * 100 << "%"
+              << std::endl;
 
-        // TODO Fix the yin pitcher to use Windowing
-        std::cout << "Run Yin Pitch Detector" << std::endl;
-        YINPitchDetector ypd(windowing);
-        WindowedData<float> pitches = ypd.detect_pitch(src.data(), 20, 2000, 0.05f);
+    // Add cosmetic peak normalisation
+    float maxAbs = 0.f;
+    for (float s : outValues)
+        maxAbs = std::max(maxAbs, std::abs(s));
 
-        std::cout << "Seek the target notes in the scale" << std::endl;
-        std::vector<float> pitchCorrectionFactors(pitches.data.size());
-        for (int i = 0; i < pitches.data.size(); ++i) {
-            pitchCorrectionFactors[i] = scale.getClosestPitchInScale(pitches.data[i]) / pitches.data[i];
-        }
-
-        std::cout << "Run pitch correcting" << std::endl;
-        PitchShifter ps(windowing, sampleRate);
-        std::vector<float> outValues = ps.run(src.data().samples, {windowing, pitchCorrectionFactors});
-        float maxP = *std::ranges::max_element(outValues);
-        for (auto &p: outValues) {
-            p /= maxP;
-        }
-
-        return WavFile(WavData(static_cast<unsigned int>(sampleRate), 1, outValues));
+    if (maxAbs > 1.f) {
+        float scale = 1.f / maxAbs;
+        for (float &s : outValues)
+            s *= scale;
     }
+
+    return WavFile(WavData(static_cast<unsigned int>(sampleRate), 1, outValues));
 }
+
+WavFile PitchCorrectionPipeline::roundToScale(const WavFile &src,
+                                              const Scale &scale,
+                                              Windowing windowing, PitchRange pitchRange) {
+    const auto sampleRate = static_cast<float>(src.data().sampleRate);
+
+    std::cout << "Run Yin Pitch Detector" << std::endl;
+    YINPitchDetector ypd(windowing);
+    WindowedData<float> pitches = ypd.detectPitch(src.data(), pitchRange, 0.05f);
+
+    std::cout << "Seek the target notes in the scale" << std::endl;
+    std::vector<float> pitchCorrectionFactors(pitches.data.size());
+    for (int i = 0; i < pitches.data.size(); ++i) {
+        pitchCorrectionFactors[i] = scale.getPitchCorrectionFactor(pitches.data[i]);
+    }
+
+    std::cout << "Run pitch correcting" << std::endl;
+    PitchShifter ps(windowing, sampleRate);
+    std::vector<float> outValues = ps.run(src.data().samples, {windowing, pitchCorrectionFactors});
+
+    // Add cosmetic peak normalisation
+    float maxAbs = 0.f;
+    for (float s : outValues)
+        maxAbs = std::max(maxAbs, std::abs(s));
+
+    if (maxAbs > 1.f) {
+        float scale = 1.f / maxAbs;
+        for (float &s : outValues)
+            s *= scale;
+    }
+
+    return WavFile(WavData(static_cast<unsigned int>(sampleRate), 1, outValues));
+}
+}  // namespace p2t

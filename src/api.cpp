@@ -6,29 +6,30 @@
 #include "pytotune/io/wav_file.h"
 
 namespace p2t {
-    void tune_to_midi(const std::string &wav_path, const std::string &midi_path, const std::string &out_path) {
-        auto wav = WavFile::load(wav_path);
-        auto midi = MidiFile::load(midi_path);
+    void tuneToMidi(const std::string &wavPath, const std::string &midiPath, const std::string &outPath,
+                      const PitchRange pitchRange) {
+        auto wav = WavFile::load(wavPath);
+        auto midi = MidiFile::load(midiPath);
 
         int windowSize = 4096;
         int stride = 1024;
         Windowing windowing(windowSize, stride);
 
         PitchCorrectionPipeline pipeline;
-        WavFile outWav = pipeline.matchMidi(wav, midi, windowing, 0.0f);
-        outWav.store(out_path);
+        WavFile outWav = pipeline.matchMidi(wav, midi, windowing, DEFAULT_A4, pitchRange);
+        outWav.store(outPath);
     }
 
-    void tune_to_scale(const std::string &wav_path, const Scale &scale,
-                       const std::string &out_path) {
-        auto wav = WavFile::load(wav_path);
+    void tuneToScale(const std::string &wavPath, const Scale &scale,
+                       const std::string &outPath, const PitchRange pitchRange) {
+        auto wav = WavFile::load(wavPath);
 
         int windowSize = 4096;
         int stride = 1024;
         Windowing windowing(windowSize, stride);
 
         PitchCorrectionPipeline pipeline;
-        WavFile outWav = pipeline.roundToScale(wav, scale, windowing);
-        outWav.store(out_path);
+        WavFile outWav = pipeline.roundToScale(wav, scale, windowing, pitchRange);
+        outWav.store(outPath);
     }
 } // namespace p2t
