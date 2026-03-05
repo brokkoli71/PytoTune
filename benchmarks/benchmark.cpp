@@ -1,5 +1,6 @@
 #include "../include/pytotune/api.h"
 #include "perfevent/PerfEvent.hpp"
+#include <iostream>
 
 int main() {
     PerfEvent e;
