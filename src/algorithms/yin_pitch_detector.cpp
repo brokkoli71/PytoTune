@@ -47,7 +47,7 @@ namespace p2t {
             }
             energy /= windowSamples.size(); // mean square
 
-            constexpr float silenceThreshold = 1e-6f;
+            constexpr float silenceThreshold = 5e-5f;
 
             if (energy < silenceThreshold) {
                 pitchValues[i] = 0.0f; // 0 Hz = unvoiced
