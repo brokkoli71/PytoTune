@@ -9,16 +9,12 @@
 #include "hwy/aligned_allocator.h"
 
 using namespace hwy::HWY_NAMESPACE;
-# define USE_HWY 1
-
+// # define USE_HWY 1
 namespace p2t {
     WindowedData<float> YINPitchDetector::detectPitch(const WavData &audioBuffer, const PitchRange pitchRange,
-                                                      const float threshold = 0.4) const {
-        constexpr int decimationFactor = 2; // or parameterize this
-
+                                                      const float threshold, const int decimationFactor) const {
         std::vector<float> downsampledAudio =
                 decimateZeroPhase(audioBuffer.samples, decimationFactor);
-
 
         const unsigned int downsampledFs =
                 audioBuffer.sampleRate / decimationFactor;

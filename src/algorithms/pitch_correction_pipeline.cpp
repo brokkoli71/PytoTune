@@ -18,7 +18,7 @@ WavFile PitchCorrectionPipeline::matchMidi(const WavFile &src,
 
     YINPitchDetector ypd(windowing);
     double start = omp_get_wtime();
-    WindowedData<float> pitches = ypd.detectPitch(src.data(), pitchRange, 0.05f);
+    WindowedData<float> pitches = ypd.detectPitch(src.data(), pitchRange);
 
     double middle = omp_get_wtime();
 
@@ -35,9 +35,9 @@ WavFile PitchCorrectionPipeline::matchMidi(const WavFile &src,
     std::vector<float> outValues = ps.run(src.data().samples, {windowing, pitchCorrectionFactors});
     double end = omp_get_wtime();
 
-    std::cout << "Time for Pitch Detection: " << middle - start << ". " << (middle - start) / (end - start) * 100 << "%" << std::endl;
-    std::cout << "Time for Pitch Shifting: " << end - middle << ". " << (end - middle) / (end - start) * 100 << "%"
-              << std::endl;
+    // std::cout << "Time for Pitch Detection: " << middle - start << ". " << (middle - start) / (end - start) * 100 << "%" << std::endl;
+    // std::cout << "Time for Pitch Shifting: " << end - middle << ". " << (end - middle) / (end - start) * 100 << "%"
+    //           << std::endl;
 
     // Add cosmetic peak normalisation
     float maxAbs = 0.f;
@@ -58,17 +58,17 @@ WavFile PitchCorrectionPipeline::roundToScale(const WavFile &src,
                                               Windowing windowing, PitchRange pitchRange) {
     const auto sampleRate = static_cast<float>(src.data().sampleRate);
 
-    std::cout << "Run Yin Pitch Detector" << std::endl;
+    // std::cout << "Run Yin Pitch Detector" << std::endl;
     YINPitchDetector ypd(windowing);
     WindowedData<float> pitches = ypd.detectPitch(src.data(), pitchRange, 0.05f);
 
-    std::cout << "Seek the target notes in the scale" << std::endl;
+    // std::cout << "Seek the target notes in the scale" << std::endl;
     std::vector<float> pitchCorrectionFactors(pitches.data.size());
     for (int i = 0; i < pitches.data.size(); ++i) {
         pitchCorrectionFactors[i] = scale.getPitchCorrectionFactor(pitches.data[i]);
     }
 
-    std::cout << "Run pitch correcting" << std::endl;
+    // std::cout << "Run pitch correcting" << std::endl;
     PitchShifter ps(windowing, sampleRate);
     std::vector<float> outValues = ps.run(src.data().samples, {windowing, pitchCorrectionFactors});
 

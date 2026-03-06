@@ -44,10 +44,11 @@ namespace p2t {
          * @param audioBuffer The audio buffer containing the WavData.
          * @param pitchRange Minimum and maximum frequency to consider (in Hz).
          * @param threshold Threshold for pitch detection confidence (between 0 and 1).
+         * @param decimationFactor Factor by which to downsample the audio for faster processing (default is 2).
          * @return A PitchDetection struct containing the detected pitch information.
          */
         [[nodiscard]] WindowedData<float> detectPitch(const WavData &audioBuffer, PitchRange pitchRange,
-                                                      float threshold) const;
+                                                      float threshold = 0.05, const int decimationFactor = 2) const;
 
         /**
          * Constructor of the PitchDetector class.

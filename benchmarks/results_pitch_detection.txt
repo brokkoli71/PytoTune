@@ -1,0 +1,27 @@
+# no openmp, no hwy
+time,              tag, cycle, kcycle,  instr, L1-miss, br-miss,   scale,  IPC,  CPU,  GHz
+24.54, pitch_detection1, 92989,    327, 188503,   12.57,   12.81, 1000000, 2.03, 1.00, 3.79
+9.48, pitch_detection2, 35906,    323, 128075,    8.90,   19.35, 1000000, 3.57, 1.00, 3.79
+4.69, pitch_detection4, 17754,    254, 91491,    7.27,   11.99, 1000000, 5.15, 1.00, 3.79
+3.42, pitch_detection8, 12968,    237, 81094,    6.50,   13.59, 1000000, 6.25, 1.00, 3.79
+
+# with openmp, no hwy
+time,              tag,  cycle, kcycle,  instr, L1-miss, br-miss,   scale,  IPC,   CPU,  GHz
+3.47, pitch_detection1, 149904,    850, 290747,   26.18,   20.63, 1000000, 1.94, 11.40, 3.78
+4.02, pitch_detection2, 50593,    571, 210615,   18.33,   46.39, 1000000, 4.16, 3.33, 3.79
+3.28, pitch_detection4, 21644,    353, 122868,   10.05,   29.55, 1000000, 5.68, 1.74, 3.78
+3.16, pitch_detection8, 14335,    270, 91876,    8.87,   23.93, 1000000, 6.41, 1.20, 3.78
+
+# no openmp, with hwy
+time,              tag, cycle, kcycle,  instr, L1-miss, br-miss,   scale,  IPC,  CPU,  GHz
+24.96, pitch_detection1, 94531,    320, 377761,   11.34,   12.78, 1000000, 4.00, 1.00, 3.79
+9.46, pitch_detection2, 35827,    319, 175515,    9.81,   12.55, 1000000, 4.90, 1.00, 3.79
+4.93, pitch_detection4, 18651,    322, 105324,    7.59,   23.25, 1000000, 5.65, 1.00, 3.79
+3.52, pitch_detection8, 13320,    243, 84413,    6.25,   22.55, 1000000, 6.34, 1.00, 3.78
+
+# with openmp, with hwy
+time,              tag,  cycle, kcycle,  instr, L1-miss, br-miss,   scale,  IPC,   CPU,  GHz
+4.01, pitch_detection1, 170467,   1027, 513770,   35.31,   18.45, 1000000, 3.01, 11.23, 3.79
+4.28, pitch_detection2, 55842,    691, 259450,   19.99,   42.67, 1000000, 4.65, 3.45, 3.79
+3.33, pitch_detection4, 22994,    383, 134634,   10.80,   23.50, 1000000, 5.86, 1.82, 3.78
+3.07, pitch_detection8, 14289,    280, 93551,    7.88,   11.24, 1000000, 6.55, 1.23, 3.79

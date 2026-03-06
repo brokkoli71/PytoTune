@@ -262,8 +262,9 @@ struct PerfEvent {
 struct PerfEventBlock {
    PerfEvent& e;
    uint64_t scale;
+   std::string tag;
 
-   PerfEventBlock(PerfEvent& e, uint64_t scale = 1) : e(e), scale(scale) {
+   PerfEventBlock(PerfEvent& e, uint64_t scale = 1, std::string tag = "none") : e(e), scale(scale), tag(tag){
       e.startCounters();
    }
 
@@ -273,6 +274,8 @@ struct PerfEventBlock {
       std::stringstream data;
       e.printParams(header,data);
       PerfEvent::printCounter(header,data,"time",e.getDuration());
+      PerfEvent::printCounter(header,data,"tag",tag);
+
       e.printReport(header, data, scale);
       if (e.printHeader) {
          std::cout << header.str() << std::endl;
