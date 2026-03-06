@@ -9,4 +9,3 @@ cmake --build . --target pytotune_benchmarks -j 10
 ./pytotune_benchmarks pitch_detection false 2
 ./pytotune_benchmarks pitch_detection false 4
 ./pytotune_benchmarks pitch_detection false 8
---build /home/hannes/CLionProjects/PytoTune
