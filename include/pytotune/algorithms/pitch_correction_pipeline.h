@@ -11,6 +11,10 @@ namespace p2t {
 
     class PitchCorrectionPipeline {
     public:
+        std::vector<float> valuesPitchedToMidi(const WavFile &src, const MidiFile &midiFile,
+                                               const WindowedData<float> &pitches,
+                                               Windowing windowing, float tuning = DEFAULT_A4);
+
         WavFile matchMidi(const WavFile &src,
                           const MidiFile &midiFile,
                           Windowing windowing = DEFAULT_WINDOWING,
