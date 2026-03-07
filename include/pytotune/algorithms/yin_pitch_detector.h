@@ -5,6 +5,9 @@
 #include "../io/wav_file.h"
 #include "pytotune/data-structures/windowing.h"
 
+#define DEFAULT_THRESHOLD 0.05f
+#define DEFAULT_DECIMATION_FACTOR 4
+
 namespace p2t {
     struct PitchRange {
         float min;
@@ -48,7 +51,7 @@ namespace p2t {
          * @return A PitchDetection struct containing the detected pitch information.
          */
         [[nodiscard]] WindowedData<float> detectPitch(const WavData &audioBuffer, PitchRange pitchRange,
-                                                      float threshold = 0.05, const int decimationFactor = 2) const;
+                                                      float threshold = DEFAULT_THRESHOLD, int decimationFactor = DEFAULT_DECIMATION_FACTOR) const;
 
         /**
          * Constructor of the PitchDetector class.

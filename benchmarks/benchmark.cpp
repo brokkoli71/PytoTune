@@ -48,9 +48,9 @@ int main(int argc, char* argv[]) {
         for (int decimation : {1, 2, 4, 8}) {
             const std::string ompTag = (std::getenv("OMP_NUM_THREADS") && std::string(std::getenv("OMP_NUM_THREADS")) == "1")
                                        ? "_omp=off" : "_omp=on";
-            PerfEventBlock b(e, 1000000, tag + "_d" + std::to_string(decimation) + std::string(HWY_TAG) + ompTag);
+            PerfEventBlock b(e, 1000000, "d" + std::to_string(decimation) + std::string(HWY_TAG) + ompTag);
+            if (decimation>1) e.printHeader = false;
             pipeline.detectPitch(wav, windowing, pitchRange, 0.05f, decimation);
-            e.printHeader = false;
         }
 
     } else if (tag == "correction") {
@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
         const auto pitches = pipeline.detectPitch(wav, windowing, pitchRange);
         const auto factors = scale.getPitchCorrectionFactors(pitches.data);
 
-        PerfEventBlock b(e, 1000000, tag + std::string(TWIDDLES_TAG) + std::string(WINDOWING_TAG));
+        PerfEventBlock b(e, 1000000, std::string(TWIDDLES_TAG) + std::string(WINDOWING_TAG));
         pipeline.shiftPitch(wav, windowing, factors);
 
     } else {

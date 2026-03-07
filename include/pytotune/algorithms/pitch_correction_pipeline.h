@@ -15,8 +15,8 @@ namespace p2t {
         WindowedData<float> detectPitch(const WavFile &src,
                                         Windowing windowing,
                                         PitchRange pitchRange,
-                                        float threshold = 0.05f,
-                                        int decimationFactor = 2) const;
+                                        float threshold = DEFAULT_THRESHOLD,
+                                        int decimationFactor = DEFAULT_DECIMATION_FACTOR) const;
 
         /// apply correction factors and return the shifted audio. Exposed for benchmarking.
         WavFile shiftPitch(const WavFile &src,

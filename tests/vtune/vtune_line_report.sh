@@ -1,10 +1,13 @@
 #!/bin/bash
 # Generate line-by-line CPU time report for YIN pitch detector
+# make sure to enable:
+# sudo sysctl -w kernel.yama.ptrace_scope=0
+
 
 RESULT_DIR="../testoutput/vtune_results/with_hwy_x8"
 OUTPUT_FILE="$RESULT_DIR/line_by_line_report.txt"
 PYTOTUNE_CLI="../../cmake-build-relwithdebinfo/pytotune_cli"
-WAV_FILE="../data/untitled_8x.wav"
+WAV_FILE="../data/benchmarking/e-minor-singing-10x.wav"
 WAV_OUT="../testoutput/test.wav"
 
 rm -rf "$RESULT_DIR"

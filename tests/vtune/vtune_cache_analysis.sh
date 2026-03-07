@@ -4,7 +4,7 @@
 RESULT_DIR="../testoutput/vtune_results/cache_with_hwy_x8"
 OUTPUT_CSV="$RESULT_DIR/cache_line_report.csv"
 PYTOTUNE_CLI="../../cmake-build-relwithdebinfo/pytotune_cli"
-WAV_FILE="../data/untitled_8x.wav"
+WAV_FILE="../data/benchmarking/e-minor-singing-10x.wav"
 WAV_OUT="../testoutput/test.wav"
 
 rm -rf "$RESULT_DIR"

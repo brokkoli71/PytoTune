@@ -1,5 +1,5 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-RESULTS="$SCRIPT_DIR/results_pitch_correction.txt"
+RESULTS="$SCRIPT_DIR/results_pitch_correction.csv"
 
 pushd ../cmake-build-relwithdebinfo
 
@@ -12,7 +12,7 @@ for twiddles in ON OFF; do
         cmake --build . --target pytotune_benchmarks -j 10 > /dev/null 2>&1
 
         ./pytotune_benchmarks correction $( [ "$print_header" = "false" ] && echo false ) | tee -a "$RESULTS"
-        echo "" >> "$RESULTS"
+#        echo "" >> "$RESULTS"
         print_header=false
     done
 done
