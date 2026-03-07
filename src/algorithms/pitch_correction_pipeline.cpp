@@ -1,14 +1,24 @@
 #include "pytotune/algorithms/pitch_correction_pipeline.h"
 
-#include <omp.h>
-
 #include <algorithm>
-#include <iostream>
 
 #include "pytotune/algorithms/pitch_shifter.h"
 #include "pytotune/algorithms/yin_pitch_detector.h"
 
 namespace p2t {
+
+    static void peakNormalise(std::vector<float> &samples) {
+        float maxAbs = 0.f;
+        for (float s : samples)
+            maxAbs = std::max(maxAbs, std::abs(s));
+
+        if (maxAbs > 1.f) {
+            const float normFactor = 1.f / maxAbs;
+            for (float &s : samples)
+                s *= normFactor;
+        }
+    }
+
     std::vector<float> PitchCorrectionPipeline::valuesPitchedToMidi(const WavFile &src, const MidiFile &midiFile, const WindowedData<float> &pitches, Windowing windowing, const float tuning) {
         const auto sampleRate = static_cast<float>(src.data().sampleRate);
 
@@ -23,18 +33,7 @@ namespace p2t {
 
         PitchShifter ps(windowing, sampleRate);
         std::vector<float> outValues = ps.run(src.data().samples, {windowing, pitchCorrectionFactors});
-        double end = omp_get_wtime();
-
-        // Add cosmetic peak normalisation
-        float maxAbs = 0.f;
-        for (float s: outValues)
-            maxAbs = std::max(maxAbs, std::abs(s));
-
-        if (maxAbs > 1.f) {
-            float scale = 1.f / maxAbs;
-            for (float &s: outValues)
-                s *= scale;
-        }
+        peakNormalise(outValues);
         return outValues;
     }
 
@@ -57,31 +56,18 @@ namespace p2t {
                                                   Windowing windowing, PitchRange pitchRange) {
         const auto sampleRate = static_cast<float>(src.data().sampleRate);
 
-        // std::cout << "Run Yin Pitch Detector" << std::endl;
         YINPitchDetector ypd(windowing);
         WindowedData<float> pitches = ypd.detectPitch(src.data(), pitchRange, 0.05f);
 
-        // std::cout << "Seek the target notes in the scale" << std::endl;
         std::vector<float> pitchCorrectionFactors(pitches.data.size());
         for (int i = 0; i < pitches.data.size(); ++i) {
             pitchCorrectionFactors[i] = scale.getPitchCorrectionFactor(pitches.data[i]);
         }
 
-        // std::cout << "Run pitch correcting" << std::endl;
         PitchShifter ps(windowing, sampleRate);
         std::vector<float> outValues = ps.run(src.data().samples, {windowing, pitchCorrectionFactors});
-
-        // Add cosmetic peak normalisation
-        float maxAbs = 0.f;
-        for (float s: outValues)
-            maxAbs = std::max(maxAbs, std::abs(s));
-
-        if (maxAbs > 1.f) {
-            float scale = 1.f / maxAbs;
-            for (float &s: outValues)
-                s *= scale;
-        }
-
+        peakNormalise(outValues);
         return WavFile(WavData(static_cast<unsigned int>(sampleRate), 1, outValues));
     }
+
 } // namespace p2t
