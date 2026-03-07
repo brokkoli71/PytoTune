@@ -11,18 +11,26 @@ namespace p2t {
 
     class PitchCorrectionPipeline {
     public:
-        std::vector<float> valuesPitchedToMidi(const WavFile &src, const MidiFile &midiFile,
-                                               const WindowedData<float> &pitches,
-                                               Windowing windowing, float tuning = DEFAULT_A4);
+        /// detect pitch per window. Exposed for benchmarking.
+        WindowedData<float> detectPitch(const WavFile &src,
+                                        Windowing windowing,
+                                        PitchRange pitchRange,
+                                        float threshold = 0.05f,
+                                        int decimationFactor = 2) const;
+
+        /// apply correction factors and return the shifted audio. Exposed for benchmarking.
+        WavFile shiftPitch(const WavFile &src,
+                           Windowing windowing,
+                           const std::vector<float> &correctionFactors) const;
 
         WavFile matchMidi(const WavFile &src,
                           const MidiFile &midiFile,
                           Windowing windowing = DEFAULT_WINDOWING,
-                          float tuning = DEFAULT_A4, PitchRange pitchRange = VoiceRanges::HUMAN);
+                          float tuning = DEFAULT_A4, PitchRange pitchRange = VoiceRanges::HUMAN) const;
 
         WavFile roundToScale(const WavFile &src,
                              const Scale &scale,
-                             Windowing windowing = DEFAULT_WINDOWING, PitchRange pitchRange = VoiceRanges::HUMAN);
+                             Windowing windowing = DEFAULT_WINDOWING, PitchRange pitchRange = VoiceRanges::HUMAN) const;
     };
 }
 

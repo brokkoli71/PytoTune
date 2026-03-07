@@ -1,15 +1,9 @@
-with REIMPLEMENTED_WINDOWING, with USE_PREDEFINED_TWIDDLES
-time,        tag, cycle, kcycle, instr, L1-miss, br-miss,   scale,  IPC,  CPU,  GHz
-1.83, correction,  6913,   1906, 17032,   49.27,    8.78, 1000000, 2.46, 1.00, 3.78 
+time,                       tag, cycle, kcycle,  instr, L1-miss, br-miss,   scale,  IPC,  CPU,  GHz 
+9.85, correction_tw=off_win=off, 37333,   6076, 118576,     162,   76.21, 1000000, 3.18, 1.00, 3.79 
 
-no REIMPLEMENTED_WINDOWING, with USE_PREDEFINED_TWIDDLES
-time,        tag, cycle, kcycle, instr, L1-miss, br-miss,   scale,  IPC,  CPU,  GHz
-0.73, correction,  2765,   9.35,  9164,    4.20,   11.73, 1000000, 3.31, 1.00, 3.79
+8.19, correction_tw=off_win=off, 31066,    136, 104548,   45.80,     149, 1000000, 3.37, 1.00, 3.79 
 
-no REIMPLEMENTED_WINDOWING, no USE_PREDEFINED_TWIDDLES
-time,        tag, cycle, kcycle, instr, L1-miss, br-miss,   scale,  IPC,  CPU,  GHz
-0.81, correction,  3091,  16.22,  9818,    4.34,   11.69, 1000000, 3.18, 1.00, 3.79
+10.98, correction_tw=off_win=off, 41636,   6107, 126785,     153,   76.69, 1000000, 3.05, 1.00, 3.79 
 
-with REIMPLEMENTED_WINDOWING, no USE_PREDEFINED_TWIDDLES
-time,        tag, cycle, kcycle, instr, L1-miss, br-miss,   scale,  IPC,  CPU,  GHz
-1.93, correction,  7306,   1924, 17763,   44.70,    8.81, 1000000, 2.43, 1.00, 3.78
+9.43, correction_tw=off_win=off, 35730,    144, 112983,   48.46,     150, 1000000, 3.16, 1.00, 3.79 
+

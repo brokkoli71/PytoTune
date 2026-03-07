@@ -9,8 +9,6 @@
 
 #include "pytotune/algorithms/fft.h"
 
-#define REIMPLEMENTED_WINDOWING 1
-
 namespace p2t {
     std::vector<float> PitchShifter::run(const std::vector<float> &samples, float pitchFactor) const {
         return run(samples, {windowing, std::vector<float>(samples.size() / windowing.stride, pitchFactor)});

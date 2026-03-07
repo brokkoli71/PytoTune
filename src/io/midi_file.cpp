@@ -300,4 +300,19 @@ namespace p2t {
 
         return {windowing, result};
     }
+
+    std::vector<float> MidiFile::getPitchCorrectionFactors(const WindowedData<float> &pitches,
+                                                           const Windowing &windowing,
+                                                           float sampleRate,
+                                                           float tuning) const {
+        const WindowedData<float> targetPitches = getWindowedHighestPitches(windowing, sampleRate, 0.0f, tuning);
+
+        std::vector<float> factors(pitches.data.size());
+        for (int i = 0; i < pitches.data.size(); ++i) {
+            factors[i] = (pitches.data[i] == 0 || targetPitches.data[i] == 0)
+                             ? 1.f
+                             : targetPitches.data[i] / pitches.data[i];
+        }
+        return factors;
+    }
 } // namespace p2t

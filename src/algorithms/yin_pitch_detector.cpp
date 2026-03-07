@@ -9,7 +9,6 @@
 #include "hwy/aligned_allocator.h"
 
 using namespace hwy::HWY_NAMESPACE;
-# define USE_HWY 1
 namespace p2t {
     WindowedData<float> YINPitchDetector::detectPitch(const WavData &audioBuffer, const PitchRange pitchRange,
                                                       const float threshold, const int decimationFactor) const {

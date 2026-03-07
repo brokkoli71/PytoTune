@@ -47,6 +47,13 @@ float Scale::getPitchCorrectionFactor(float pitch) const {
     return closestPitch / pitch;
 }
 
+std::vector<float> Scale::getPitchCorrectionFactors(const std::vector<float> &pitches) const {
+    std::vector<float> factors(pitches.size());
+    for (int i = 0; i < pitches.size(); ++i)
+        factors[i] = getPitchCorrectionFactor(pitches[i]);
+    return factors;
+}
+
 float Scale::getClosestPitchInScale(float pitch) const {
     // We are looking for a, where pitch = a * basePitch
     const float a = pitch / this->baseNote;

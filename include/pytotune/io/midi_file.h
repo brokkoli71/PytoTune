@@ -60,6 +60,19 @@ namespace p2t {
                                                       float defaultPitch = 0.0f,
                                                       float tuning = DEFAULT_A4) const;
 
+        /**
+         * Computes pitch correction factors to match detected pitches to the MIDI targets.
+         * @param pitches The detected pitches per window (Hz). A pitch of 0 yields a correction factor of 1.
+         * @param windowing The windowing used during pitch detection.
+         * @param sampleRate The sample rate of the audio.
+         * @param tuning The tuning of A4 in Hz.
+         * @return A vector of correction factors, one per window.
+         */
+        std::vector<float> getPitchCorrectionFactors(const WindowedData<float> &pitches,
+                                                     const Windowing &windowing,
+                                                     float sampleRate,
+                                                     float tuning = DEFAULT_A4) const;
+
         inline static float noteToPitch(int note, float tuning = DEFAULT_A4);
 
         /// Total duration of the flattened MIDI in seconds.
