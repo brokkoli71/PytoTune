@@ -16,9 +16,9 @@ const std::string wavPath = "../tests/data/benchmarking/e-minor-singing-10x.wav"
 #endif
 
 #if USE_PREDEFINED_TWIDDLES
-  constexpr std::string_view TWIDDLES_TAG = "_tw=on";
+  constexpr std::string_view TWIDDLES_TAG = "tw=on";
 #else
-  constexpr std::string_view TWIDDLES_TAG = "_tw=off";
+  constexpr std::string_view TWIDDLES_TAG = "tw=off";
 #endif
 
 #ifdef REIMPLEMENTED_WINDOWING

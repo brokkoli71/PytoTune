@@ -1,6 +1,0 @@
-time,                       tag, cycle, kcycle,  instr, L1-miss, br-miss,   scale,  IPC,  CPU,  GHz 
-9.85, correction_tw=off_win=off, 37333,   6076, 118576,     162,   76.21, 1000000, 3.18, 1.00, 3.79
-8.19, correction_tw=off_win=off, 31066,    136, 104548,   45.80,     149, 1000000, 3.37, 1.00, 3.79
-10.98, correction_tw=off_win=off, 41636,   6107, 126785,     153,   76.69, 1000000, 3.05, 1.00, 3.79
-9.43, correction_tw=off_win=off, 35730,    144, 112983,   48.46,     150, 1000000, 3.16, 1.00, 3.79 
-

@@ -1,11 +1,16 @@
 #!/bin/bash
 # VTune Cache Miss Analysis - Line-by-Line Report
+# make sure to enable:
+# sudo sysctl -w kernel.perf_event_paranoid=0
+RESULT_DIR="../tests/testoutput/vtune_results/cache_with_hwy_x8"
 
-RESULT_DIR="../testoutput/vtune_results/cache_with_hwy_x8"
-OUTPUT_CSV="$RESULT_DIR/cache_line_report.csv"
-PYTOTUNE_CLI="../../cmake-build-relwithdebinfo/pytotune_cli"
-WAV_FILE="../data/benchmarking/e-minor-singing-10x.wav"
-WAV_OUT="../testoutput/test.wav"
+OUTPUT_CSV="./cache_line_report.csv"
+PYTOTUNE_CLI="../cmake-build-relwithdebinfo/pytotune_cli"
+WAV_FILE="../tests/data/benchmarking/e-minor-singing-10x.wav"
+WAV_OUT="../tests/testoutput/test.wav"
+
+cmake ../cmake-build-relwithdebinfo -Wno-dev > /dev/null 2>&1
+cmake --build ../cmake-build-relwithdebinfo --target pytotune_cli -j 10 > /dev/null 2>&1
 
 rm -rf "$RESULT_DIR"
 

@@ -4,11 +4,14 @@
 # sudo sysctl -w kernel.yama.ptrace_scope=0
 
 
-RESULT_DIR="../testoutput/vtune_results/with_hwy_x8"
-OUTPUT_FILE="../../benchmarks/line_report.txt"
-PYTOTUNE_CLI="../../cmake-build-relwithdebinfo/pytotune_cli"
-WAV_FILE="../data/benchmarking/e-minor-singing-10x.wav"
-WAV_OUT="../testoutput/test.wav"
+RESULT_DIR="../tests/testoutput/vtune_results/with_hwy_x8"
+OUTPUT_FILE="./line_report.txt"
+PYTOTUNE_CLI="../cmake-build-relwithdebinfo/pytotune_cli"
+WAV_FILE="../tests/data/benchmarking/e-minor-singing-10x.wav"
+WAV_OUT="../tests/testoutput/test.wav"
+
+cmake ../cmake-build-relwithdebinfo -Wno-dev > /dev/null 2>&1
+cmake --build ../cmake-build-relwithdebinfo --target pytotune_cli -j 10 > /dev/null 2>&1
 
 rm -rf "$RESULT_DIR"
 
