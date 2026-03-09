@@ -7,7 +7,9 @@ constexpr auto pitchRange = p2t::VoiceRanges::HUMAN;
 constexpr int windowSize = 4096;
 constexpr int stride = 1024;
 
-const std::string wavPath = "../tests/data/benchmarking/e-minor-singing-10x.wav";
+const std::string wavPathScale = "../tests/data/benchmarking/e-minor-singing-10x.wav";
+const std::string wavPathMidi = "../tests/data/benchmarking/for-elise-text-10x.wav";
+const std::string midiPath = "../tests/data/benchmarking/for-elise-10x.mid";
 
 #if USE_HWY
 constexpr std::string_view HWY_TAG = "_hwy=on";
@@ -16,9 +18,9 @@ constexpr std::string_view HWY_TAG = "_hwy=off";
 #endif
 
 #if USE_PREDEFINED_TWIDDLES
-constexpr std::string_view TWIDDLES_TAG = "tw=on";
+constexpr std::string_view TWIDDLES_TAG = "_tw=on";
 #else
-constexpr std::string_view TWIDDLES_TAG = "tw=off";
+constexpr std::string_view TWIDDLES_TAG = "_tw=off";
 #endif
 
 #ifdef REIMPLEMENTED_WINDOWING
@@ -30,9 +32,25 @@ constexpr std::string_view WINDOWING_TAG = "_win=off";
 PerfEvent e;
 
 int main(int argc, char *argv[]) {
-    if (argc > 2 && std::string(argv[2]) == "false") {
-        e.printHeader = false;
+    std::string mode = "midi"; // or "scale"
+    if (argc > 2) {
+        if (std::string(argv[2]) == "true")
+            e.printHeader = true;
+        else if (std::string(argv[2]) == "false")
+            e.printHeader = false;
+        else if (std::string(argv[2]) == "midi")
+            mode = "midi";
+        else if (std::string(argv[2]) == "scale")
+            mode = "scale";
+        else {
+            std::cerr << "Unknown second argument: " << argv[2] << ". Expected 'true', 'false', 'midi' or 'scale'" << std::endl;
+            return 1;
+        }
     }
+    if (argc > 3 && (std::string(argv[3]) == "midi" || std::string(argv[3]) == "scale")) {
+        mode = std::string(argv[3]);
+    }
+
     if (argc <= 1) {
         std::cerr << "Please specify a benchmark to run: 'detection' or 'correction'" << std::endl;
         return 1;
@@ -42,7 +60,10 @@ int main(int argc, char *argv[]) {
     p2t::Windowing windowing(windowSize, stride);
 
     if (tag == "detection") {
-        auto wav = p2t::WavFile::load(wavPath);
+        p2t::WavFile wav = p2t::WavFile::load(wavPathMidi);
+        if (mode == "scale")
+            wav = p2t::WavFile::load(wavPathScale);
+
         p2t::PitchCorrectionPipeline pipeline;
 
         for (int decimation : {1, 2, 4, 8}) {
@@ -54,20 +75,36 @@ int main(int argc, char *argv[]) {
             if (decimation > 1) e.printHeader = false;
             pipeline.detectPitch(wav, windowing, pitchRange, 0.05f, decimation);
         }
-    } else if (tag == "correction") {
-        auto wav = p2t::WavFile::load(wavPath);
-        const auto scale = p2t::Scale::fromName("E minor");
-        p2t::PitchCorrectionPipeline pipeline;
-
-        // Run detection outside the benchmarked block
-        const auto pitches = pipeline.detectPitch(wav, windowing, pitchRange);
-        const auto factors = scale.getPitchCorrectionFactors(pitches.data);
-
-        PerfEventBlock b(e, 1000000, std::string(TWIDDLES_TAG) + std::string(WINDOWING_TAG));
-        pipeline.shiftPitch(wav, windowing, factors);
-    } else {
-        std::cerr << "Unknown benchmark: " << tag << ". Please specify 'detection' or 'correction'" << std::endl;
-        return 1;
+        return 0;
     }
-    return 0;
+    if (tag == "correction") {
+        if (mode == "midi") {
+            auto wav = p2t::WavFile::load(wavPathMidi);
+            auto midi = p2t::MidiFile::load(midiPath);
+            p2t::PitchCorrectionPipeline pipeline;
+
+            // Run detection outside the benchmarked block
+            const auto pitches = pipeline.detectPitch(wav, windowing, pitchRange);
+            const auto factors = midi.getPitchCorrectionFactors(pitches, windowing, wav.data().sampleRate);
+
+            PerfEventBlock b(e, 1000000, mode + std::string(TWIDDLES_TAG) + std::string(WINDOWING_TAG));
+            pipeline.shiftPitch(wav, windowing, factors);
+            return 0;
+        }
+        if (mode == "scale") {
+            auto wav = p2t::WavFile::load(wavPathScale);
+            const auto scale = p2t::Scale::fromName("E minor");
+            p2t::PitchCorrectionPipeline pipeline;
+
+            // Run detection outside the benchmarked block
+            const auto pitches = pipeline.detectPitch(wav, windowing, pitchRange);
+            const auto factors = scale.getPitchCorrectionFactors(pitches.data);
+
+            PerfEventBlock b(e, 1000000, mode + std::string(TWIDDLES_TAG) + std::string(WINDOWING_TAG));
+            pipeline.shiftPitch(wav, windowing, factors);
+            return 0;
+        }
+    }
+    std::cerr << "Unknown benchmark: " << tag << ". Please specify 'detection' or 'correction' and mode must be 'midi' or 'scale'" << std::endl;
+    return 1;
 }
