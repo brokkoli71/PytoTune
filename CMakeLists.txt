@@ -43,6 +43,15 @@ endif ()
 
 target_link_libraries(pytotune_core PUBLIC OpenMP::OpenMP_CXX PRIVATE hwy)
 
+option(PYTOTUNE_USE_HWY "Enable Highway SIMD in YIN pitch detector" ON)
+target_compile_definitions(pytotune_core PUBLIC $<$<BOOL:${PYTOTUNE_USE_HWY}>:USE_HWY=1>)
+
+option(PYTOTUNE_USE_PREDEFINED_TWIDDLES "Use predefined twiddle factors in FFT" ON)
+target_compile_definitions(pytotune_core PUBLIC $<$<BOOL:${PYTOTUNE_USE_PREDEFINED_TWIDDLES}>:USE_PREDEFINED_TWIDDLES=1>)
+
+option(PYTOTUNE_REIMPLEMENTED_WINDOWING "Use reimplemented windowing in pitch shifter" ON)
+target_compile_definitions(pytotune_core PUBLIC $<$<BOOL:${PYTOTUNE_REIMPLEMENTED_WINDOWING}>:REIMPLEMENTED_WINDOWING=1>)
+
 # GoogleTest
 include(FetchContent)
 FetchContent_Declare(
@@ -103,3 +112,9 @@ target_link_libraries(pytotune_tests PRIVATE pytotune_core gtest_main)
 enable_testing()
 include(GoogleTest)
 gtest_discover_tests(pytotune_tests)
+
+if (LINUX)
+    add_executable(pytotune_benchmarks
+            benchmarks/benchmark.cpp)
+    target_link_libraries(pytotune_benchmarks PRIVATE pytotune_core)
+endif ()

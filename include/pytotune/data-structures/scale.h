@@ -66,10 +66,17 @@ namespace p2t {
 
         /**
          * Given a pitch of some note, the closest note in the scale is calculated and the factor to correct the pitch to the closest note is returned.
-         * @param pitch The pitch of the nate to be rounded.
+         * @param pitch The pitch of the note to be rounded.
          * @return The factor to correct the pitch to the closest note in the scale. If the input pitch is 0, 1 is returned.
          */
         float getPitchCorrectionFactor(float pitch) const;
+
+        /**
+         * Computes pitch correction factors for a vector of detected pitches.
+         * @param pitches The detected pitches (Hz). A pitch of 0 yields a correction factor of 1.
+         * @return A vector of correction factors, one per input pitch.
+         */
+        std::vector<float> getPitchCorrectionFactors(const std::vector<float> &pitches) const;
 
         // Getters and Setters
         float getBaseNote() const;

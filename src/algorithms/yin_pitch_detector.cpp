@@ -9,16 +9,12 @@
 #include "hwy/aligned_allocator.h"
 
 using namespace hwy::HWY_NAMESPACE;
-# define USE_HWY 1
 
 namespace p2t {
     WindowedData<float> YINPitchDetector::detectPitch(const WavData &audioBuffer, const PitchRange pitchRange,
-                                                      const float threshold = 0.4) const {
-        constexpr int decimationFactor = 2; // or parameterize this
-
+                                                      const float threshold, const int decimationFactor) const {
         std::vector<float> downsampledAudio =
                 decimateZeroPhase(audioBuffer.samples, decimationFactor);
-
 
         const unsigned int downsampledFs =
                 audioBuffer.sampleRate / decimationFactor;
@@ -218,17 +214,44 @@ namespace p2t {
     std::vector<float> YINPitchDetector::convolve(
         const std::vector<float> &signal,
         const std::vector<float> &kernel) {
-        const unsigned int signalSize = signal.size();
-        const unsigned int kernalSize = kernel.size();
+        const int signalSize = static_cast<int>(signal.size());
+        const int kernelSize = static_cast<int>(kernel.size());
         std::vector<float> output(signalSize, 0.0f);
 
+        // Pre-reverse kernel so the inner loop accesses both arrays forward:
+        // output[n] = sum_k kernel[k]*signal[n-k]
+        //           = sum_j kernelRev[j]*signal[n-(kernelSize-1)+j]
+        const std::vector<float> kernelRev(kernel.rbegin(), kernel.rend());
+
+#pragma omp parallel for schedule(dynamic, 16)
         for (int n = 0; n < signalSize; ++n) {
+            // For n < kernelSize-1, only a partial prefix of the kernel contributes.
+            const int kStart = std::max(0, n - kernelSize + 1);
+            const int len = n - kStart + 1;
+            const int kRevOffset = kernelSize - 1 - n + kStart;
+
+            const float *sigPtr = signal.data() + kStart;
+            const float *kerPtr = kernelRev.data() + kRevOffset;
+
             float acc = 0.0f;
-            for (int k = 0; k < kernalSize; ++k) {
-                int idx = n - k;
-                if (idx >= 0 && idx < signalSize)
-                    acc += kernel[k] * signal[idx];
+            int k = 0;
+# if USE_HWY
+            ScalableTag<float> d;
+            const int lanes = static_cast<int>(Lanes(d));
+            auto vecAcc = Zero(d);
+
+            for (; k + lanes <= len; k += lanes) {
+                const auto vs = Load(d, sigPtr + k);
+                const auto vk = Load(d, kerPtr + k);
+                vecAcc = MulAdd(vk, vs, vecAcc);
             }
+            // Formally: acc = ReduceSum(d, vecAcc); But doesnt seam to exist in our hwy build
+            acc = GetLane(SumOfLanes(d, vecAcc));
+# endif
+            // Scalar remainder (and full scalar path when USE_HWY=0)
+            for (; k < len; ++k)
+                acc += sigPtr[k] * kerPtr[k];
+
             output[n] = acc;
         }
 

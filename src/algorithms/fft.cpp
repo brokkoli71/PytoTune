@@ -16,8 +16,6 @@
 #include <algorithm>
 #include <cstring>
 
-#define USE_PREDEFINED_TWIDDLES 1
-
 namespace p2t {
     void smbFft(std::vector<float> &fftBuffer, const int fftFrameSize, const int sign) {
         if (fftFrameSize <= 0) return;
