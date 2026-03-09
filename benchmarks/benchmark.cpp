@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (argc <= 1) {
-        std::cerr << "Please specify a benchmark to run: 'detection' or 'correction'" << std::endl;
+        std::cerr << "Please specify a benchmark to run: 'detection', 'correction', or 'pipeline'" << std::endl;
         return 1;
     }
 
@@ -105,6 +105,57 @@ int main(int argc, char *argv[]) {
             return 0;
         }
     }
-    std::cerr << "Unknown benchmark: " << tag << ". Please specify 'detection' or 'correction' and mode must be 'midi' or 'scale'" << std::endl;
+    if (tag == "pipeline_ranges" || tag == "pipeline_windows") {
+        constexpr float rangeBase = 82.0f; // ~E2
+        const int rangeWidths[] = { 100, 500, 1000, 2000 };
+        const int windowSizes[] = { 128, 256, 512, 1024, 2048, 4096, 8192 };
+
+        const p2t::WavFile wav = (mode == "scale")
+            ? p2t::WavFile::load(wavPathScale)
+            : p2t::WavFile::load(wavPathMidi);
+
+        p2t::MidiFile midi = p2t::MidiFile::load(midiPath);
+
+        const p2t::Scale scale = p2t::Scale::fromName("E minor");
+
+        p2t::PitchCorrectionPipeline pipeline;
+
+        auto runOnce = [&](int width, int ws) {
+            const p2t::PitchRange range(rangeBase, rangeBase + static_cast<float>(width));
+            const p2t::Windowing win(ws, ws / 4);
+            const std::string baseTag = mode
+                + "_r=" + std::to_string(width)
+                + "_w=" + std::to_string(ws)
+                + std::string(HWY_TAG)
+                + std::string(TWIDDLES_TAG)
+                + std::string(WINDOWING_TAG);
+
+            p2t::WindowedData<float> pitches(win);
+            {
+                PerfEventBlock b(e, 1000000, "det_" + baseTag);
+                pitches = pipeline.detectPitch(wav, win, range);
+            }
+            e.printHeader = false;
+
+            const std::vector<float> factors = (mode == "midi")
+                ? midi.getPitchCorrectionFactors(pitches, win, wav.data().sampleRate)
+                : scale.getPitchCorrectionFactors(pitches.data);
+
+            {
+                PerfEventBlock b(e, 1000000, "cor_" + baseTag);
+                pipeline.shiftPitch(wav, win, factors);
+            }
+        };
+
+        if (tag == "pipeline_ranges") {
+            for (int width : rangeWidths)
+                runOnce(width, windowSize); // default window size
+        } else {
+            for (int ws : windowSizes)
+                runOnce(static_cast<int>(pitchRange.max - pitchRange.min), ws); // default HUMAN range width
+        }
+        return 0;
+    }
+    std::cerr << "Unknown benchmark: " << tag << ". Please specify 'detection', 'correction', 'pipeline_ranges', or 'pipeline_windows' and mode must be 'midi' or 'scale'" << std::endl;
     return 1;
 }
