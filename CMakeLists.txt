@@ -113,6 +113,8 @@ enable_testing()
 include(GoogleTest)
 gtest_discover_tests(pytotune_tests)
 
-add_executable(pytotune_benchmarks
-        benchmarks/benchmark.cpp)
-target_link_libraries(pytotune_benchmarks PRIVATE pytotune_core)
+if (LINUX)
+    add_executable(pytotune_benchmarks
+            benchmarks/benchmark.cpp)
+    target_link_libraries(pytotune_benchmarks PRIVATE pytotune_core)
+endif ()

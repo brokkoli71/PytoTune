@@ -1,5 +1,3 @@
-#if defined(__linux__)
-
 #include <iostream>
 
 #include "perfevent/PerfEvent.hpp"
@@ -73,5 +71,3 @@ int main(int argc, char *argv[]) {
     }
     return 0;
 }
-
-#endif
