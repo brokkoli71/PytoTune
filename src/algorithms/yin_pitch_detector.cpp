@@ -9,6 +9,7 @@
 #include "hwy/aligned_allocator.h"
 
 using namespace hwy::HWY_NAMESPACE;
+
 namespace p2t {
     WindowedData<float> YINPitchDetector::detectPitch(const WavData &audioBuffer, const PitchRange pitchRange,
                                                       const float threshold, const int decimationFactor) const {
@@ -225,11 +226,11 @@ namespace p2t {
 #pragma omp parallel for schedule(dynamic, 16)
         for (int n = 0; n < signalSize; ++n) {
             // For n < kernelSize-1, only a partial prefix of the kernel contributes.
-            const int kStart     = std::max(0, n - kernelSize + 1);
-            const int len        = n - kStart + 1;
+            const int kStart = std::max(0, n - kernelSize + 1);
+            const int len = n - kStart + 1;
             const int kRevOffset = kernelSize - 1 - n + kStart;
 
-            const float *sigPtr = signal.data()    + kStart;
+            const float *sigPtr = signal.data() + kStart;
             const float *kerPtr = kernelRev.data() + kRevOffset;
 
             float acc = 0.0f;
@@ -244,7 +245,8 @@ namespace p2t {
                 const auto vk = Load(d, kerPtr + k);
                 vecAcc = MulAdd(vk, vs, vecAcc);
             }
-            acc = ReduceSum(d, vecAcc);
+            // Formally: acc = ReduceSum(d, vecAcc); But doesnt seam to exist in our hwy build
+            acc = GetLane(SumOfLanes(d, vecAcc));
 # endif
             // Scalar remainder (and full scalar path when USE_HWY=0)
             for (; k < len; ++k)
