@@ -111,9 +111,9 @@
 
     Profiling tools such as Intel VTune Profiler and Xcode Instruments were employed to identify computational bottlenecks. Targeted optimizations were subsequently applied to critical sections of the C++ backend, improving execution efficiency while maintaining correctness.
 
-    Testing was conducted using the Google Test framework (GTest) to ensure functionality and stability throughout the development cycle and on the different plattforms Windows, MacOS and Linux. Build configuration and compilation were managed with CMake, while Python bindings were implemented using pybind11 to provide a seamless interface. Parallelization opportunities and other optimization stratigies were explored using OpenMP and vectorization using Highway \cite{highway}
+    Testing was conducted using the Google Test framework (GTest) to ensure functionality and stability throughout the development cycle and on the different plattforms Windows, MacOS and Linux. Build configuration and compilation were managed with CMake, while Python bindings were implemented using pybind11 to provide a seamless interface. Parallelization opportunities and other optimization stratigies were explored using OpenMP and vectorization using Highway \cite{highway}.
 
-
+    A small note on quality. We did not do any formal checks for the quality of the output audio, as the goal of this assignment was to implement an optimized algorithm, not to produce a high-quality pitch correction. We still tried to make the output sound as good as possible, and at least for matching a scale (and thus not having a huge correction factor) the output sounded quite good. For larger correction factors, as relevant for teh MIDI mode, the output sounded quite robotic. Future improvements could be made by implementing more sophisticated pitch correction algorithms, such as the one described by Laroche and Dolson \cite{laroche2002time}.
     \section{The Algorithm}
     \textbf{Auch beschreibe Optimierungen, die möglich wären, aber weil kein Bottle Neck nicht gemacht haben.}
 
@@ -173,13 +173,13 @@
     In practice, the per-window pitch estimates can exhibit spurious octave jumps.
     We address this with two lightweight post-processing steps applied to the pitch trajectory: first, any window whose estimated pitch drops by more than a perfect fifth relative to its predecessor (factor $< 1/1.5$) is assumed to be an octave error and its value is doubled; second, a median filter of width five is applied across the trajectory to suppress remaining isolated outliers without smearing gradual pitch contours.
 
-    \subsubsection{Optimisations}
-    The dominant cost of YIN is the evaluation of $d(\tau)$ for every lag and every window, an $\mathcal{O}(W \cdot \tau_{\max})$ operation. We applied three targeted optimisations to reduce this cost in practice.
+    \subsubsection{Optimizations}
+    The dominant cost of YIN is the evaluation of $d(\tau)$ for every lag and every window, an $\mathcal{O}(W \cdot \tau_{\max})$ operation. We applied three targeted optimizations to reduce this cost in practice.
 
     \paragraph{Parallelization.} Each window is processed independently — the difference function, CMND computation, and minimum search for window $k$ do not depend on any other window.
     We exploit this by distributing the loop over windows across all available CPU cores using an \texttt{OpenMP} \texttt{parallel for} directive.
 
-    \paragraph{Vectorisation.} Within each window, the inner summation $\sum_j (x[j] - x[j+\tau])^2$ is a straightforward fused subtract-square-accumulate pattern that maps directly to SIMD instructions.
+    \paragraph{Vectorization.} Within each window, the inner summation $\sum_j (x[j] - x[j+\tau])^2$ is a straightforward fused subtract-square-accumulate pattern that maps directly to SIMD instructions.
     We use the Google Highway library~\cite{highway} to load vectors of consecutive samples, compute the squared difference in a single vectorised expression, and accumulate the result.
     Highway selects the widest available SIMD instruction set at compile time (e.g.\ SSE4, AVX2, AVX-512, or NEON), so the same source code benefits from wider registers on newer hardware without manual dispatch.
 
@@ -219,7 +219,7 @@
     By scaling these instantaneous frequencies instead of naïvely moving bins, the algorithm preserves temporal continuity. The scaled magnitudes are then reassigned to the corresponding bins in the synthesis frame, the phases are updated accordingly, and the inverse DFT reconstructs the time-domain signal.
 
     \subsubsection{Optimizations}
-    \paragraph{Predefined Twiddles} In our FFT implementation, computing the twiddle factors
+    \paragraph{Recursive Twiddles} In our FFT implementation, computing the twiddle factors
     $W_k = e^{-2 \pi i k / N}$ for each butterfly stage can be
     computationally expensive due to repeated $\cos$ and $\sin$ calls. This algorithmic optimization replaces direct evaluation of these trigonometric functions with a recurrence relation:
     $$
@@ -229,15 +229,15 @@
     This reduces the number of expensive $\cos$/$\sin$ evaluations from
     $\mathcal O(n \log n)$ to $\mathcal O(\log n)$ per FFT stage.
 
-    \paragraph{Reimplemented Windowing} Bernsee's original implementation of the per window processing made heavy use of an input and output queue, making it difficult to parallelize the code as subsequent iterations depend on the output of the previous one. We reimplemented the windowing and overlap-add procedure to allow for parallel processing of the FFT of the windows. But as described in \ref{sec:pitch-correction-algo}, the real phase and magnitude of a window still depends on the detected values of the previous one. This part of the code thus has to run sequentially. Although the sequential part of the code has a runtime of $\mathcal{O}(n)$, it is still quite heavy, rendering this optimization less effective.
+    \paragraph{Reimplemented Windowing} Bernsee's original implementation of the per window processing made heavy use of an input and output queue, making it difficult to parallelize the code as subsequent iterations depend on the output of the previous one. We reimplemented the windowing and overlap-add procedure to allow for parallel processing of the FFT of the windows. But as described in \ref{sec:pitch-correction-algo}, the real phase and magnitude of a window still depends on the detected values of the previous one. This part of the code thus has to run sequentially. Although the sequential part of the code has a runtime of $\mathcal{O}(n)$, it is still quite heavy, rendering this optimization less effective, see \autoref{fig:correction_optimizations}.
 
     \section{Experiments}
+    All computations were performed on a TUXEDO InfinityFlex 14 Gen1 laptop equipped with an Intel Core i5-1335U processor and 32 GB RAM, running Linux (kernel 6.18.13). The implementation was additionally validated on a MacBook Air 13" (M2) with 16 GB RAM, running macOS Tahoe 26.0.1. Similar results were obtained on both platforms; however, we report the Linux results for consistency.
 
     \subsection{Bottleneck Analysis}
     When we had the algorithm up and running we did early timing tests, to see which parts would be most worth it to improve.
     We got the timings seen in \autoref{tab:first_bottlenck_analysis}.
-
-    \begin{table}[htbp]
+    \begin{table}[htbp]   
         \caption{First bottleneck analysis on a \SI{15}{\second} sound file, with a detection range of $[\SI{20}{Hz}, \SI{2}{\kilo Hz}]$.}
         \label{tab:first_bottlenck_analysis}
         \resizebox{0.7\columnwidth}{!}{
@@ -253,6 +253,7 @@
                 \bottomrule
             \end{tabular}
         }
+
     \end{table}
 
     Thus, we primarily identified the pitch detection as the major bottleneck, which is why we focused our optimization efforts on that part of the code.
@@ -278,20 +279,20 @@
 
     \subsection{Optimizing the Pitch Detection}
 
-    \begin{figure}[h!]
+    \begin{figure}[htbp]
     \centering
     \begin{subfigure}[b]{0.23\textwidth}
         \centering
         \includegraphics[width=\textwidth]{graphics/pitch_detection_by_decimation.pdf}
         \caption{Execution time for different decimation factors $\delta$. Human pitch range was used.}
-        \label{fig:fig1}
+        \label{fig:detetction_by_decimation}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
         \centering
         \includegraphics[width=\textwidth]{graphics/pitch_detection_by_decimation.pdf}
         \caption{Execution time for different pitch ranges. $\delta = 4$ was used for all measurements.}
-        \label{fig:fig2}
+        \label{fig:detection_by_pitch_range}
     \end{subfigure}
     \caption{Execution time for pitch detection of a \SI{10}{\minute} sound file.}
     \label{fig:pitch_detection_optimizations}
@@ -299,6 +300,12 @@
 
     \subsection{Optimizing the Pitch Correction}
 
+\begin{figure}[htbp]  % "h" means place here (approx)
+        \includegraphics[width=0.4\textwidth]{graphics/pitch_correction.pdf} % adjust width
+        \caption{Runtime of our pitch correction implementation for a sound file of \SI{10}{\minute} length for different enabled optimization strategies.}
+        \label{fig:correction_optimizations}
+    \end{figure}
+    The results in \autoref{fig:correction_optimizations} show that the recursive twiddle optimization improves the overall runtime by approximately \SI{12}{\percent}. In contrast, the reimplemented windowing approach leads to a slowdown of about \SI{20}{\percent}. While the redesign enables parallel processing of the FFTs of individual windows, a substantial sequential component remains due to dependencies between consecutive windows. As a result, the overhead introduced by parallelization outweighs the benefits of concurrent execution, leading to a net performance decrease.
 
     \section{Conclusions}
 
