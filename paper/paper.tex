@@ -185,7 +185,7 @@
 
     \paragraph{Downsampling.} Pitch detection does not require the full audio bandwidth; only frequencies up to the maximum expected pitch are relevant.
     We therefore decimate the signal by a factor $\delta$ before running YIN, reducing both the number of samples per window and the required lag range, which reduces the cost of evaluating $d$ by approximately a factor of $\delta^2$.
-    To avoid aliasing, we apply a zero-phase FIR (TODO: Citation Needed) low-pass filter prior to downsampling: the signal is convolved with a 101-tap Hamming-windowed sinc filter in both the forward and backward directions, yielding a linear-phase response with no phase distortion.
+    To avoid aliasing, we apply a zero-phase FIR low-pass filter prior to downsampling: the signal is convolved with a 101-tap Hamming-windowed sinc filter in both the forward and backward directions, yielding a linear-phase response with no phase distortion \cite{lyons_dsp,oppenheim_dsp}.
     The convolution itself can be parallelised across output samples with \texttt{OpenMP} and vectorised with Highway, using a pre-reversed kernel to turn the reverse signal access into a forward walk that SIMD loads can exploit directly.
     The detected pitches are subsequently mapped back to the original window grid via linear interpolation.
 
@@ -297,6 +297,9 @@
     \caption{Execution time for pitch detection of a \SI{10}{\minute} sound file.}
     \label{fig:pitch_detection_optimizations}
 \end{figure}
+    The performance measurements for the pitch detection stage are shown in \autoref{fig:pitch_detection_optimizations}. Parallelization provides the largest improvement, increasing throughput by nearly a factor of four. This speedup is consistent with the available hardware parallelism and indicates that the workload can be distributed effectively across multiple cores. Within the parallelized implementation, SIMD vectorization yields an additional improvement of approximately \SI{35}{\percent}, demonstrating that data-level parallelism further reduces the per-sample processing cost.
+
+    \autoref{fig:detetction_by_decimation} also highlights the strong influence of the decimation factor $\delta$. Across all optimization strategies, runtime scales approximately inversely with $\delta$, since increasing the decimation factor reduces the number of processed samples proportionally. As a result, configurations with larger $\delta$ values consistently exhibit lower runtimes, while smaller values lead to significantly higher computational cost, while the computational overhead of the downsampling process itself remains negligible in comparison.
 
     \subsection{Optimizing the Pitch Correction}
 
