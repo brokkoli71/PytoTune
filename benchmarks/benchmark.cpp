@@ -120,39 +120,39 @@ int main(int argc, char *argv[]) {
 
         p2t::PitchCorrectionPipeline pipeline;
 
-        auto runOnce = [&](int width, int ws) {
+        const std::string compileTags = std::string(HWY_TAG) + std::string(TWIDDLES_TAG) + std::string(WINDOWING_TAG);
+
+        auto runOnce = [&](int width, int ws, const std::string &varyingTag) {
             const p2t::PitchRange range(rangeBase, rangeBase + static_cast<float>(width));
             const p2t::Windowing win(ws, ws / 4);
-            const std::string baseTag = mode
-                + "_r=" + std::to_string(width)
-                + "_w=" + std::to_string(ws)
-                + std::string(HWY_TAG)
-                + std::string(TWIDDLES_TAG)
-                + std::string(WINDOWING_TAG);
 
-            p2t::WindowedData<float> pitches(win);
-            {
-                PerfEventBlock b(e, 1000000, "det_" + baseTag);
-                pitches = pipeline.detectPitch(wav, win, range);
-            }
-            e.printHeader = false;
+            for (int decimation : {1, DEFAULT_DECIMATION_FACTOR}) {
+                const std::string baseTag = mode + varyingTag + "_d=" + std::to_string(decimation) + compileTags;
 
-            const std::vector<float> factors = (mode == "midi")
-                ? midi.getPitchCorrectionFactors(pitches, win, wav.data().sampleRate)
-                : scale.getPitchCorrectionFactors(pitches.data);
+                p2t::WindowedData<float> pitches(win);
+                {
+                    PerfEventBlock b(e, 1000000, "det_" + baseTag);
+                    pitches = pipeline.detectPitch(wav, win, range, DEFAULT_THRESHOLD, decimation);
+                }
+                e.printHeader = false;
 
-            {
-                PerfEventBlock b(e, 1000000, "cor_" + baseTag);
-                pipeline.shiftPitch(wav, win, factors);
+                const std::vector<float> factors = (mode == "midi")
+                    ? midi.getPitchCorrectionFactors(pitches, win, wav.data().sampleRate)
+                    : scale.getPitchCorrectionFactors(pitches.data);
+
+                {
+                    PerfEventBlock b(e, 1000000, "cor_" + baseTag);
+                    pipeline.shiftPitch(wav, win, factors);
+                }
             }
         };
 
         if (tag == "pipeline_ranges") {
             for (int width : rangeWidths)
-                runOnce(width, windowSize); // default window size
+                runOnce(width, windowSize, "_r=" + std::to_string(width));
         } else {
             for (int ws : windowSizes)
-                runOnce(static_cast<int>(pitchRange.max - pitchRange.min), ws); // default HUMAN range width
+                runOnce(static_cast<int>(pitchRange.max - pitchRange.min), ws, "_w=" + std::to_string(ws));
         }
         return 0;
     }
