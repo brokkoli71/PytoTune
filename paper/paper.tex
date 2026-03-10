@@ -51,23 +51,12 @@
 
 %% The abstract is a short summary of the work to be presented in the article.
     \begin{abstract}
-
-        The five-finger pattern \cite{macgilchrist2014}:
-        \begin{enumerate}
-            \item \textbf{Topic and background:} What topic does the paper deal with? What is the point of departure for your research? Why are you studying this now?
-            \item \textbf{Focus:} What is your research question? What are you studying precisely?
-            \item \textbf{Method:} What did you do?
-            \item \textbf{Key findings:} What did you discover?
-            \item \textbf{Conclusions or implications:} What do these findings mean? What broader issues do they speak to?
-        \end{enumerate}
-
-
-    \end{abstract}
-
+    Pitch correction (Auto-Tune) is a common signal-processing task in music production that requires accurate pitch estimation and modification of audio signals. In this work we investigate how such a system can be engineered as an efficient and reusable open-source library. We present \texttt{pytotune}, a Python library with a C++ backend that implements a full pitch-correction pipeline consisting of YIN-based pitch detection, target pitch determination via MIDI or musical scales, and Fourier-based pitch shifting. Through systematic profiling and optimization we improved the performance of the computational bottlenecks using parallelization, SIMD vectorization, and signal decimation. Our experiments show that these optimizations substantially reduce the cost of pitch detection and shift the runtime bottleneck to the correction stage. The results highlight the importance of empirical profiling and iterative refinement when engineering high-performance signal-processing systems.
+\end{abstract}
 %%
 %% Keywords. The author(s) should pick words that accurately describe
 %% the work being presented. Separate the keywords with commas.
-    \keywords{entity resolution, data cleansing, programming contest}
+    \keywords{pitch correction, pitch detection, YIN algorithm, audio signal processing, algorithm engineering, performance optimization}
 
 
 %%
@@ -284,14 +273,14 @@
     \begin{subfigure}[b]{0.23\textwidth}
         \centering
         \includegraphics[width=\textwidth]{graphics/pitch_detection_by_decimation.pdf}
-        \caption{Execution time for different decimation factors $\delta$. Human pitch range was used.}
+        \caption{Execution time for different decimation factors $\delta$. The human pitch range was used.}
         \label{fig:detetction_by_decimation}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.23\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{graphics/pitch_detection_by_decimation.pdf}
-        \caption{Execution time for different pitch ranges. $\delta = 4$ was used for all measurements.}
+        \includegraphics[width=\textwidth]{graphics/pitch_detection_by_pitch_range.pdf}
+        \caption{Execution time for different pitch ranges $f_{max} - f_{min}$. All runs without further optimizations.}
         \label{fig:detection_by_pitch_range}
     \end{subfigure}
     \caption{Execution time for pitch detection of a \SI{10}{\minute} sound file.}
@@ -300,6 +289,8 @@
     The performance measurements for the pitch detection stage are shown in \autoref{fig:pitch_detection_optimizations}. Parallelization provides the largest improvement, increasing throughput by nearly a factor of four. This speedup is consistent with the available hardware parallelism and indicates that the workload can be distributed effectively across multiple cores. Within the parallelized implementation, SIMD vectorization yields an additional improvement of approximately \SI{35}{\percent}, demonstrating that data-level parallelism further reduces the per-sample processing cost.
 
     \autoref{fig:detetction_by_decimation} also highlights the strong influence of the decimation factor $\delta$. Across all optimization strategies, runtime scales approximately inversely with $\delta$, since increasing the decimation factor reduces the number of processed samples proportionally. As a result, configurations with larger $\delta$ values consistently exhibit lower runtimes, while smaller values lead to significantly higher computational cost, while the computational overhead of the downsampling process itself remains negligible in comparison.
+
+    A big impact on the performance of the pitch detection is also the pitch range, as shown in \autoref{fig:detection_by_pitch_range}, as the number of lags $\tau$ that need to be evaluated grows with the pitch range. For low decimation factors, this effect is more pronounced, since the cost of evaluating $d(\tau)$ dominates the runtime. For higher decimation factors, the reduced number of samples per window mitigates this effect, leading to a less steep increase in runtime as the pitch range expands.
 
     \subsection{Optimizing the Pitch Correction}
 
@@ -310,7 +301,28 @@
     \end{figure}
     The results in \autoref{fig:correction_optimizations} show that the recursive twiddle optimization improves the overall runtime by approximately \SI{12}{\percent}. In contrast, the reimplemented windowing approach leads to a slowdown of about \SI{20}{\percent}. While the redesign enables parallel processing of the FFTs of individual windows, a substantial sequential component remains due to dependencies between consecutive windows. As a result, the overhead introduced by parallelization outweighs the benefits of concurrent execution, leading to a net performance decrease.
 
+    \subsection{The Impact of the Windowing}
+    Quality wise it is not trivial to select an optimal windowing. A small window size allows for a more precise tracking of the pitch, but it also makes the algorithm more susceptible to noise. A large window size, on the other hand, is more robust to noise, but it also makes the algorithm less responsive to changes in pitch. Thus, there is a trade-off between precision and robustness when selecting the window size, though for the sizes we tested, the robustness was the bigger issue, thus preferring larger window sizes. 
+
+    \begin{figure}[htbp] 
+        \includegraphics[width=0.35\textwidth]{graphics/windowing_comparison.pdf} 
+        \caption{Runtime of our algorithms for a sound file of \SI{10}{\minute} length for different window sizes, with no optimizations enabled.}
+        \label{fig:windowing_optimizations}
+    \end{figure}
+    The runtime of the pitch detection stage is heavily effected by the window size, as shown in \autoref{fig:windowing_optimizations}. Although an increase in window size leads to a decrease in the number of windows, the super-linear runtimer of the YIN algorithm dominates the overall runtime, resulting in a significant increase as the window size grows.
+
+    The pitch correction seams to be less affected by the window size, as the runtime of the pitch correction is dominated by the FFT, which has a runtime of $\mathcal{O}(n \log n)$, where $n$ is the window size. Thus, the increase in runtime is not as pronounced as for the pitch detection stage.
+
+
     \section{Conclusions}
+
+In this project we developed \texttt{pytotune}, an open-source pitch correction library combining a C++ backend with a Python interface for convenient integration into Python-based audio workflows. The system implements a complete pipeline consisting of pitch detection with the YIN algorithm, target pitch determination from MIDI or musical scales, and pitch shifting using a Fourier-transform-based method.
+
+The main focus of this work was the algorithm engineering process. Early profiling revealed pitch detection as the dominant computational bottleneck. By applying parallelization with OpenMP, SIMD vectorization through the Highway library, and signal decimation, we significantly reduced the runtime of this stage. After these optimizations, the computational cost shifted to the pitch correction stage, illustrating how removing one bottleneck can expose the next limiting component.
+
+Our experiments further demonstrate that parameters such as window size, pitch range, and decimation factor strongly influence runtime. Some optimizations that appeared promising in theory did not yield improvements in practice due to remaining sequential dependencies, highlighting the importance of empirical performance analysis.
+
+Overall, the project highlighted the importance of systematic profiling when engineering algorithmic systems. While the theoretical complexity of the individual components was known, the practical bottlenecks only became clear through measurement. In particular, we observed how parallelization and vectorization can substantially reduce the cost of computationally intensive signal-processing tasks, while other seemingly promising optimizations may provide little or even negative benefit due to hidden sequential dependencies. These results illustrate that effective performance improvements require an iterative process of implementation, measurement, and refinement rather than relying solely on theoretical expectations.
 
 %%
 %% The next two lines define the bibliography style to be used, and
