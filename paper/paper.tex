@@ -201,9 +201,9 @@
     $$
     is computed and compared against the expected phase advance for that bin based on the window stride. This allows the true instantaneous frequency to be estimated:
     $$
-    \omega_m[k] = \frac{2 \pi k}{W} + \frac{\Delta \varphi_m[k] - 2 \pi k R / W}{R},
+    \omega_m[k] = \frac{2 \pi k}{L} + \frac{\Delta \varphi_m[k] - 2 \pi k R / L}{R},
     $$
-    which represents the actual frequency content rather than the discrete bin location.
+    which represents the actual frequency content rather than the discrete bin location. Here $R$ and $L $ are the window stride and length, respectively.
 
     By scaling these instantaneous frequencies instead of naïvely moving bins, the algorithm preserves temporal continuity. The scaled magnitudes are then reassigned to the corresponding bins in the synthesis frame, the phases are updated accordingly, and the inverse DFT reconstructs the time-domain signal.
 
