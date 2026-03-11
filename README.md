@@ -177,7 +177,7 @@ export PYTHONPATH="$PWD/build:$PYTHONPATH"
 ```python
 import pytotune
 
-scale = pytotune.Scale.from_name("C major")
+scale = pytotune.Scale.fromName("C major")
 pytotune.tuneToScale("input.wav", scale, "output_scale.wav")
 ```
 
@@ -195,7 +195,7 @@ pytotune.tuneToMidi("input.wav", "reference.mid", "output_midi.wav")
 import pytotune
 
 pitch_range = pytotune.PitchRange(82.41, 1046.50)
-scale = pytotune.Scale.from_name("E minor")
+scale = pytotune.Scale.fromName("E minor")
 pytotune.tuneToScale("input.wav", scale, "output.wav", pitch_range)
 ```
 
@@ -204,7 +204,7 @@ pytotune.tuneToScale("input.wav", scale, "output.wav", pitch_range)
 ```python
 import pytotune
 
-pitch_range = pytotune.singer_to_pitch_range("tenor")
+pitch_range = pytotune.singerToPitchRange("tenor")
 pytotune.tuneToMidi("input.wav", "reference.mid", "output.wav", pitch_range)
 ```
 
@@ -236,14 +236,14 @@ You can create scales from names such as:
 - `edo19`
 - `bohlen-pierce`
 
-By default, `Scale.from_name(...)` uses **A4 = 442 Hz** unless you pass a different tuning explicitly.
+By default, `Scale.fromName(...)` uses **A4 = 442 Hz** unless you pass a different tuning explicitly.
 
 Example:
 
 ```python
 import pytotune
 
-scale = pytotune.Scale.from_name("C major", 440)
+scale = pytotune.Scale.fromName("C major", 440)
 ```
 
 ## CLI Usage

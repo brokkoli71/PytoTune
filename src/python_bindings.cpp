@@ -50,7 +50,7 @@ PYBIND11_MODULE(pytotune, m) {
             });
 
     // Expose helper to map singer names to PitchRange
-    m.def("singer_to_pitch_range", &singerToPitchRange, "Convert singer name to a PitchRange", py::arg("singer"));
+    m.def("singerToPitchRange", &singerToPitchRange, "Convert singer name to a PitchRange", py::arg("singer"));
 
     // Expose common voice ranges as module attributes for convenience
     m.attr("VoiceRange_HUMAN") = py::cast(p2t::VoiceRanges::HUMAN);
@@ -67,36 +67,36 @@ PYBIND11_MODULE(pytotune, m) {
 
     py::class_<p2t::Scale>(m, "Scale")
             .def(py::init<float, float, std::vector<float> >(),
-                 py::arg("base_note"),
-                 py::arg("repeat_factor"),
+                  py::arg("baseNote"),
+                  py::arg("repeatFactor"),
                  py::arg("notes"))
 
-            .def_static("from_name",
+              .def_static("fromName",
                         &p2t::Scale::fromName,
                         py::arg("name"),
                         py::arg("tuning") = DEFAULT_A4)
 
-            .def_static("from_mode_name",
+              .def_static("fromModeName",
                         &p2t::Scale::fromModeName,
-                        py::arg("mode_name"),
-                        py::arg("base_note"))
+                        py::arg("modeName"),
+                        py::arg("baseNote"))
 
-            .def_static("from_mode",
+              .def_static("fromMode",
                         &p2t::Scale::fromMode,
                         py::arg("mode"),
-                        py::arg("base_note"))
+                        py::arg("baseNote"))
 
-            .def("closest_pitch",
+              .def("closestPitch",
                  &p2t::Scale::getClosestPitchInScale,
                  py::arg("pitch"))
 
             .def_property(
-                "base_note",
+                 "baseNote",
                 &p2t::Scale::getBaseNote,
                 &p2t::Scale::setBaseNote)
 
             .def_property(
-                "repeat_factor",
+                 "repeatFactor",
                 &p2t::Scale::getRepeatFactor,
                 &p2t::Scale::setRepeatFactor)
 
