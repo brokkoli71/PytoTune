@@ -120,7 +120,7 @@ The project also builds against the bundled `highway/` directory.
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/brokkoli71/PytoTune.git
 cd PytoTune
 ```
 
