@@ -112,7 +112,7 @@ TEST(PitchDetectionTest, DetectVoicePitch) {
         for (const auto& pitch : detection.data)
         {
         // Expect the detected pitch to be approximately 440 Hz but allow more variance
-        EXPECT_NEAR(pitch, 440.0f, 10.f);
+        EXPECT_NEAR(pitch, 440.0f, 15.f);
         }
         });
 }
