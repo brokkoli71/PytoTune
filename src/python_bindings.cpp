@@ -86,7 +86,7 @@ PYBIND11_MODULE(pytotune, m) {
                         py::arg("mode"),
                         py::arg("baseNote"))
 
-              .def("closestPitch",
+              .def("getClosestPitchInScale",
                  &p2t::Scale::getClosestPitchInScale,
                  py::arg("pitch"))
 
@@ -108,11 +108,11 @@ PYBIND11_MODULE(pytotune, m) {
                 &p2t::Scale::setNotes);
 
     // Make pitch_range optional by defaulting to HUMAN (PitchRange is registered above)
-    m.def("tuneToMidi", &p2t::tuneToMidi, "Tune a WAV file using a MIDI file as reference",
+        m.def("matchMidi", &p2t::matchMidi, "Tune a WAV file using a MIDI file as reference",
           py::arg("wav_path"), py::arg("midi_path"), py::arg("out_path"),
           py::arg("pitch_range") = p2t::VoiceRanges::HUMAN);
 
-    m.def("tuneToScale", &p2t::tuneToScale, "Tune a WAV file to a musical scale",
+        m.def("roundToScale", &p2t::roundToScale, "Tune a WAV file to a musical scale",
           py::arg("wav_path"), py::arg("scale"), py::arg("out_path"),
           py::arg("pitch_range") = p2t::VoiceRanges::HUMAN);
 }
