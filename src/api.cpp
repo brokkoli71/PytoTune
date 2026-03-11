@@ -6,8 +6,8 @@
 #include "pytotune/io/wav_file.h"
 
 namespace p2t {
-    void tuneToMidi(const std::string &wavPath, const std::string &midiPath, const std::string &outPath,
-                      const PitchRange pitchRange) {
+    void matchMidi(const std::string &wavPath, const std::string &midiPath, const std::string &outPath,
+                   const PitchRange pitchRange) {
         auto wav = WavFile::load(wavPath);
         auto midi = MidiFile::load(midiPath);
 
@@ -20,8 +20,8 @@ namespace p2t {
         outWav.store(outPath);
     }
 
-    void tuneToScale(const std::string &wavPath, const Scale &scale,
-                       const std::string &outPath, const PitchRange pitchRange) {
+    void roundToScale(const std::string &wavPath, const Scale &scale,
+                      const std::string &outPath, const PitchRange pitchRange) {
         auto wav = WavFile::load(wavPath);
 
         int windowSize = 4096;

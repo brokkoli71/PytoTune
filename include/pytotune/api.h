@@ -15,8 +15,8 @@ namespace p2t {
      * @param pitchRange The maximum pitch detection range
      *
      */
-    void tuneToMidi(const std::string &wavPath, const std::string &midiPath, const std::string &outPath,
-                      PitchRange pitchRange = VoiceRanges::HUMAN);
+    void matchMidi(const std::string &wavPath, const std::string &midiPath, const std::string &outPath,
+                   PitchRange pitchRange = VoiceRanges::HUMAN);
 
     /**
      * Tune a wav file to a musical scale.
@@ -25,8 +25,8 @@ namespace p2t {
      * @param outPath Path to the output wav file
      * @param pitchRange The maximum pitch detection range
      */
-    void tuneToScale(const std::string &wavPath, const Scale &scale, const std::string &outPath,
-                       PitchRange pitchRange = VoiceRanges::HUMAN);
+    void roundToScale(const std::string &wavPath, const Scale &scale, const std::string &outPath,
+                      PitchRange pitchRange = VoiceRanges::HUMAN);
 } // namespace p2t
 
 #endif // PYTOTUNE_API_H

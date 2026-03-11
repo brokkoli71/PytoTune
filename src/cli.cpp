@@ -68,14 +68,14 @@ int main(int argc, char *argv[]) {
             std::string outPath = argv[4];
 
             if (argc == 5) {
-                p2t::tuneToMidi(wavPath, midiPath, outPath, p2t::VoiceRanges::HUMAN);
+                p2t::matchMidi(wavPath, midiPath, outPath, p2t::VoiceRanges::HUMAN);
             } else if (argc == 6) {
-                p2t::tuneToMidi(wavPath, midiPath, outPath, singerToPitchRange(argv[5]));
+                p2t::matchMidi(wavPath, midiPath, outPath, singerToPitchRange(argv[5]));
             } else {
                 const p2t::PitchRange pr = {
                     std::stof(argv[5]), std::stof(argv[6])
                 };
-                p2t::tuneToMidi(wavPath, midiPath, outPath, pr);
+                p2t::matchMidi(wavPath, midiPath, outPath, pr);
             }
         } else if (mode == "scale") {
             if (argc < 5 || argc > 7) {
@@ -89,14 +89,14 @@ int main(int argc, char *argv[]) {
             p2t::Scale scale = p2t::Scale::fromName(scaleName);
 
             if (argc == 5) {
-                p2t::tuneToScale(wavPath, scale, outPath, p2t::VoiceRanges::HUMAN);
+                p2t::roundToScale(wavPath, scale, outPath, p2t::VoiceRanges::HUMAN);
             } else if (argc == 6) {
-                p2t::tuneToScale(wavPath, scale, outPath, singerToPitchRange(argv[5]));
+                p2t::roundToScale(wavPath, scale, outPath, singerToPitchRange(argv[5]));
             } else {
                 const p2t::PitchRange pr = {
                     std::stof(argv[5]), std::stof(argv[6])
                 };
-                p2t::tuneToScale(wavPath, scale, outPath, pr);
+                p2t::roundToScale(wavPath, scale, outPath, pr);
             }
         } else {
             std::cerr << "Error: Unknown mode '" << mode << "'." << std::endl;
