@@ -51,7 +51,7 @@
 
 %% The abstract is a short summary of the work to be presented in the article.
     \begin{abstract}
-    Pitch correction (Auto-Tune) is a common signal-processing task in music production that requires accurate pitch estimation and modification of audio signals. In this work we investigate how such a system can be engineered as an efficient and reusable open-source library. We present \texttt{pytotune}, a Python library with a C++ backend that implements a full pitch-correction pipeline consisting of YIN-based pitch detection, target pitch determination via MIDI or musical scales, and Fourier-based pitch shifting. Through systematic profiling and optimization we improved the performance of the computational bottlenecks using parallelization, SIMD vectorization, and signal decimation. Our experiments show that these optimizations substantially reduce the cost of pitch detection and shift the runtime bottleneck to the correction stage. The results highlight the importance of empirical profiling and iterative refinement when engineering high-performance signal-processing systems.
+    Pitch correction (Auto-Tune) is a common signal-processing task in music production that requires accurate pitch estimation and modification of audio signals. In this work we investigate how such a system can be engineered as an efficient and reusable open-source library. We present \texttt{pytotune}, a Python library with a C++ backend that implements a full pitch-correction pipeline consisting of YIN-based pitch detection, target pitch determination via MIDI or musical scales, and Fourier-based pitch shifting. Through profiling and optimization we improved the performance using parallelization, SIMD vectorization, and signal decimation. Our experiments show that these optimizations substantially reduce the cost of pitch detection and shift the runtime bottleneck to the correction stage. 
 \end{abstract}
 %%
 %% Keywords. The author(s) should pick words that accurately describe
@@ -68,23 +68,22 @@
 
 
     \section{Introduction}
-    Pitch correction, commonly known as Auto-Tune, is a signal processing task in which the fundamental frequency of an audio signal is estimated and adjusted to match a predefined musical target. Formally, given a time-domain audio signal, the system must extract its pitch trajectory and map it to a discrete set of target frequencies defined by a MIDI sequence or by a musical scale. This problem combines frequency estimation, discrete mapping, and signal transformation within a single algorithmic pipeline. While Python provides powerful tools for audio analysis, there are comparatively few open-source libraries that offer an integrated, installable pitch correction solution with a performance-oriented backend and flexible tuning support. One example might be \texttt{py-autotune} \cite{py_autotune_pypi}, although it does not seam to be developed with performance in mind.
+    Pitch correction, commonly known as Auto-Tune, is a signal processing task in which the fundamental frequency of an audio signal is estimated and adjusted to match a predefined musical target. Formally, given a time-domain audio signal, the system must extract its pitch trajectory and modify the audio signal, such that its new pitch matches a discrete target frequency defined by a MIDI sequence or by a musical scale. This problem combines frequency estimation, discrete mapping, and signal transformation within a single algorithmic pipeline. While Python provides powerful tools for audio analysis, there are comparatively few open-source libraries that offer an integrated, installable pitch correction solution with a performance-oriented backend and flexible tuning support. One example might be \texttt{py-autotune} \cite{py_autotune_pypi}, although it does not seam to be developed with performance in mind.
 
-    In this project, we develop an open-source pitch correction library with a C++ core and a Python interface, designed for distribution via PyPI. The goal is to provide a reusable and accessible tool that integrates efficiently into Python-based audio workflows while leveraging the computational advantages of C++ for the core processing steps.
-    Publishing the library as an installable package emphasizes reproducibility, transparency, and practical usability beyond a prototype implementation.
+    In this project, we develop an open-source pitch correction library with a C++ core and a Python interface, designed for future distribution via PyPI. The goal is to provide a reusable and accessible tool that integrates efficiently into Python-based audio workflows while leveraging the computational advantages of C++ for the core processing steps.
 
     The system supports two modes of operation. In the first mode, an audio file is corrected according to a corresponding MIDI file, allowing explicit control of the target pitch over time. In the second mode, detected pitches are quantized to a user-defined scale relative to a reference tuning (e.g., A4 = 440 Hz). The design allows flexible pitch sets, including scales that do not necessarily repeat within a single octave, thereby generalizing beyond conventional 12-tone systems.
 
-    The focus of this work lies in the systematic engineering of the algorithmic pipeline. Beyond defining clear input specifications and modularizing pitch detection and pitch shifting components, we evaluated the implementation empirically to identify performance bottlenecks. Based on these measurements, critical sections were refined and optimized within the C++ backend, while maintaining a clean Python API suitable for open-source distribution via PyPI. This iterative process of implementation, measurement, and targeted improvement reflects the core principles of algorithm engineering.
+    The focus of this work lies in the systematic engineering of the algorithmic pipeline, while the quality of the result was not the primary concern. We evaluated the implementation empirically to identify performance bottlenecks. Based on these measurements, critical sections were refined and optimized within the C++ backend, while maintaining a clean Python API. This iterative process of implementation, measurement, and targeted improvement reflects the core principles of algorithm engineering.
 
 % % \subsection{Background}
 
     \subsection{Related Work}
-    Pitch correction has been studied extensively in both industry and academia due to its widespread application in music production \cite{diaz2009fate}. Commercial plugins such as Antares Auto-Tune \cite{antares_autotune_website} have become standard tools in professional studios, implementing complex pitch estimation and correction strategies that are optimized for perceptual quality and real-time performance. In addition to traditional signal-processing techniques, recent research has explored machine learning approaches to pitch tracking and correction , including deep neural networks \cite{wager2020deep} trained to estimate fundamental frequency or directly synthesize pitch-shifted audio. These data-driven methods can achieve impressive accuracy in challenging acoustic conditions, but they often sacrifice transparency and interpretability, making it difficult to analyze or adapt their internal behavior without access to training data and model details.
+    Pitch correction has been studied extensively in both industry and academia due to its widespread application in music production \cite{diaz2009fate}. Commercial plugins such as Antares Auto-Tune \cite{antares_autotune_website} have become standard tools in professional studios, implementing complex pitch estimation and correction strategies that are optimized for perceptual quality and real-time performance. In addition to traditional signal-processing techniques, recent research has explored machine learning approaches to pitch tracking and correction, including deep neural networks \cite{wager2020deep} trained to estimate fundamental frequency or directly synthesize pitch-shifted audio. These data-driven methods can achieve impressive accuracy in challenging acoustic conditions, but they often sacrifice transparency and interpretability, making it difficult to analyze or adapt their internal behavior without access to training data and model details.
 
     In contrast to data-driven systems, classic algorithmic methods such as autocorrelation \cite{upadhya2012pitch}, cepstral analysis \cite{noll1967cepstrum}, and spectral estimation \cite{vincent2009adaptive} remain foundational in fundamental frequency detection. Among these, the YIN algorithm \cite{de2002yin} is a well-validated approach \cite{sukhostat2015comparative} that estimates pitch by minimizing a difference function derived from the autocorrelation of the signal, providing good stability across a wide range of monophonic inputs.
 
-    For the pitch-shifting step, there exist multiple strategies ranging from time-domain resampling \cite{laroche2002time} to phase vocoder techniques \cite{flanagan1966phase}. Bernsee’s Fourier-transform-based \cite{bernsee_pitch_shifting_ft} method implements pitch shifting by manipulating spectral bins while preserving phase relationships, offering a practical compromise between audio quality and computational cost.
+    For the pitch-shifting step, there exist multiple strategies ranging from time-domain resampling \cite{laroche2002time} to phase vocoder techniques \cite{flanagan1966phase}. Stephan Bernsee’s Fourier-transform-based \cite{bernsee_pitch_shifting_ft} method implements pitch shifting by manipulating spectral bins while preserving phase relationships, offering a practical compromise between audio quality and computational cost.
 
     Our project targets a middle path between highly engineered commercial products and opaque machine learning models. We wanted a solution whose behavior we can trace end-to-end and whose performance characteristics we can measure and optimize systematically. To that end, we selected the YIN algorithm for pitch detection and Bernsee’s Fourier-based pitch shifter for pitch modification. These choices reflect a preference for algorithmic transparency, reproducibility, and the ability to reason precisely about the processing pipeline, which supports our goals of trackability and open-source distribution.
 
@@ -98,16 +97,15 @@
     \section{Mode of Operation}
     The development process followed an agile-inspired workflow with loosely structured sprints complemented by regular meetings to coordinate tasks and track progress. Algorithmic components were initially implemented in a straightforward manner, then profiled and optimized iteratively. We were able to benchmark the performance improvements across macOS and Linux.
 
-    Profiling tools such as Intel VTune Profiler and Xcode Instruments were employed to identify computational bottlenecks. Targeted optimizations were subsequently applied to critical sections of the C++ backend, improving execution efficiency while maintaining correctness.
+    Profiling tools such as Intel VTune Profiler \cite{intel_vtune_profiler} and Xcode Instruments \cite{apple_xcode_instruments} were employed to identify computational bottlenecks. Targeted optimizations were subsequently applied to critical sections of the C++ backend, improving execution efficiency while maintaining correctness.
 
-    Testing was conducted using the Google Test framework (GTest) to ensure functionality and stability throughout the development cycle and on the different plattforms Windows, MacOS and Linux. Build configuration and compilation were managed with CMake, while Python bindings were implemented using pybind11 to provide a seamless interface. Parallelization opportunities and other optimization stratigies were explored using OpenMP and vectorization using Highway \cite{highway}.
+    Testing was conducted using the Google Test framework (GTest) \cite{google_googletest} to ensure functionality and stability throughout the development cycle and on the different plattforms Windows, MacOS and Linux. Build configuration and compilation were managed with CMake, while Python bindings were implemented using pybind11 \cite{pybind11} to provide a seamless interface. Parallelization opportunities and other optimization stratigies were explored using OpenMP and vectorization using Highway \cite{highway}.
 
-    A small note on quality. We did not do any formal checks for the quality of the output audio, as the goal of this assignment was to implement an optimized algorithm, not to produce a high-quality pitch correction. We still tried to make the output sound as good as possible, and at least for matching a scale (and thus not having a huge correction factor) the output sounded quite good. For larger correction factors, as relevant for teh MIDI mode, the output sounded quite robotic. Future improvements could be made by implementing more sophisticated pitch correction algorithms, such as the one described by Laroche and Dolson \cite{laroche2002time}.
+    A small note on quality. We did not do any formal checks for the quality of the output audio, as the goal of this assignment was to implement an optimized algorithm, not to produce a high-quality pitch correction. We still tried to make the output sound as good as possible, and at least for matching a scale (and thus not having a huge correction factor) the output sounded quite good. For larger correction factors, as relevant for the MIDI mode, the output sounded quite robotic. Future improvements could be made by implementing more sophisticated pitch correction algorithms, such as the one described by Laroche and Dolson \cite{laroche2002time}.
     \section{The Algorithm}
-    \textbf{Auch beschreibe Optimierungen, die möglich wären, aber weil kein Bottle Neck nicht gemacht haben.}
 
     \subsection{The Pipeline}
-    The processing pipeline begins by reading the input audio file and, if applicable, a corresponding MIDI file. The audio is then divided into short windows, and the YIN algorithm is applied to estimate the pitch for each segment. Target pitches are determined either from the MIDI data or a user-defined scale. Finally, each window is pitch-corrected using Bernsee’s Fourier-based algorithm, and the corrected segments are overlapped and combined to synthesize the final output signal.
+    The processing pipeline begins by reading the input audio file and, if applicable, a corresponding MIDI file. The audio is then divided into short windows, and the YIN algorithm is applied to estimate the pitch for each segment (see \ref{sec:pitch-detection}). Target pitches are determined either from the MIDI data or a user-defined scale. Finally, each window is pitch-corrected using Bernsee’s Fourier-based algorithm (see \ref{sec:pitch-correction}), and the corrected segments are overlapped and combined to synthesize the final output signal.
 
     A basic concept that we pass through the whole pipeline is \texttt{Windowing}. This represents the assignment of samples of the sound file to overlapping sections, which we call windows. Typically, one value is assigned to multiple adjacent windows. All pitch detection and shifting is then performed on this grid. The overlap is important for smoothing out the edges when the windows are recombined. For that Hann Windows are used \cite[Chapter~13.4, p.~657]{press2007numerical}. Our default windowing has a width of $4096$ samples (at a typical sample rate of \SI{44.1}{\kilo\hertz}, this represents \SI{92.9}{\milli\second}) and a stride of $1024$ values.
 
@@ -120,13 +118,13 @@
     \subsection{Input Processing}
 
     \subsubsection{File formats}
-    Standard implementations were used to read and write audio and MIDI files without any special optimisation. WAV files were loaded to extract raw sample data and MIDI files were parsed to obtain note events and timing information. This information was then converted into windowed data, i.e. which note plays at a particular window. This step contributes negligibly to the program's overall runtime. (see \autoref{tab:first_bottlenck_analysis}).
+    Standard implementations were used to read and write audio and MIDI files without any special optimization. WAV files were loaded to extract raw sample data and MIDI files were parsed to obtain note events and timing information. This information was then converted into windowed data, i.e. which note plays at a particular window. This step contributes negligibly to the program's overall runtime. (see \autoref{tab:first_bottlenck_analysis}), and thus did not warrant further optimization.
 
     \subsubsection{Scale}
     \label{sec:scale}
-    In the code, a musical scale is represented by a \texttt{float baseNote}, which is the pitch of a base note, the \texttt{float[] notes} represent the factor by which the baseNote has to be multiplied to get the note pitches, and the \texttt{float repeatFactor} is the multiplicative factor between adjacent \texttt{baseNotes}. The latter is most commonly set to 2, representing one octave. Note that pitches live on a logarithmic scale, so all distances are multiplicative. Thus, the set of all notes in scale $S$ becomes:
-    $$S = \{r^k \cdot b \cdot n\mid m \in \mathbb{Z}, n \in N\}$$
-    with the \texttt{baseNote} $b$, the \texttt{repeatFactor} $r$, the set of \texttt{notes} $N$ and the octave $k$.
+    We represent a musical scale by the pitch of the base note $b$, a finite set of factors $\Sigma$, so that every note in one part segment of the scale becomes $b \cdot \sigma, \sigma\in\Sigma$, and the factor $r$ when a segment of the scale repeats. The latter is most commonly set to 2, representing one octave. Remember that pitches live on a logarithmic scale, so all distances are multiplicative. Thus, the set of all notes in scale $S$ becomes:
+    $$S = \{r^k \cdot b \cdot \sigma \mid k \in \mathbb{Z}, \sigma \in \Sigma\}$$
+    with $k$, the index of the segment (for $r=2$ the index of the octave).
 
     The algorithmic problem we had to face, was given some pitch $f$ find the closest pitch $f' \in S$, basically projecting $f$ on $S$. The projection is given by
     $$\pi(f) = \argmin_{f'\in S} \max\left\{\frac{f}{f'}, \frac{f'}{f}\right\} = \argmin_{f'\in S}|\log f - \log f'|$$
@@ -137,11 +135,11 @@
     \label{sec:pitch-detection}
 
     \subsubsection{The YIN Algorithm}
-    The YIN algorithm \cite{de2002yin} estimates the fundamental frequency of a signal by exploiting the near-periodicity of pitched sound. If a signal $x[n]$ has period $\tau^*$, then $x[n] \approx x[n + \tau^*]$ for all $n$. This motivates defining the \emph{difference function}
+    The YIN algorithm \cite{de2002yin} estimates the fundamental frequency $f$ of a signal by exploiting the near-periodicity of pitched sound. Instead of estimating $f$ directly, we instead estimate a period $\tau^* = s/f$, where $s$ is the sample rate. If a signal $x[n]$ has period $\tau^*$, then $x[n] \approx x[n + \tau^*]$ for all $n$. This motivates defining the \emph{difference function}
     $$
-    d(\tau) = \sum_{j=0}^{W-1} \bigl(x[j] - x[j+\tau]\bigr)^2,
+    d(\tau) = \sum_{j=0}^{W-1-\tau} \bigl(x[j] - x[j+\tau]\bigr)^2,
     $$
-    where $W$ is the window length. For the true period $\tau^*$, $d$ attains a value close to zero. The pitch estimate is therefore obtained by searching for the lag $\tau$ that minimizes $d(\tau)$ within a plausible range $[\tau_{\min}, \tau_{\max}]$, derived from the assumed pitch range of the input.
+    where $W$ is the window length. For the true period $\tau^*$, $d$ attains a value close to zero. The pitch estimate is therefore obtained by searching for the lag $\tau$ that minimizes $d(\tau)$ within a plausible range $[\tau_{\min}, \tau_{\max}]$. Thus this part of the algorithm is paramaterized by the expected pitch range $[f_{\min}, f_{\max}]$, which translates to $[\tau_{\min}, \tau_{\max}] = [s/f_{\max}, s/f_{\min}]$.
 
     A naive search for the global minimum of $d$ is prone to octave errors, since $d$ also vanishes at integer multiples of $\tau^*$. To address this, YIN introduces the \emph{Cumulative Mean Normalized Difference} (CMND):
     $$
@@ -163,7 +161,7 @@
     We address this with two lightweight post-processing steps applied to the pitch trajectory: first, any window whose estimated pitch drops by more than a perfect fifth relative to its predecessor (factor $< 1/1.5$) is assumed to be an octave error and its value is doubled; second, a median filter of width five is applied across the trajectory to suppress remaining isolated outliers without smearing gradual pitch contours.
 
     \subsubsection{Optimizations}
-    The dominant cost of YIN is the evaluation of $d(\tau)$ for every lag and every window, an $\mathcal{O}(W \cdot \tau_{\max})$ operation. We applied three targeted optimizations to reduce this cost in practice.
+    The dominant cost of YIN is the evaluation of $d(\tau)$ for every lag and every window, an $\mathcal{O}(W \cdot (\tau_{\max}-\tau_{\min}))$ operation. We applied three targeted optimizations to reduce this cost in practice.
 
     \paragraph{Parallelization.} Each window is processed independently — the difference function, CMND computation, and minimum search for window $k$ do not depend on any other window.
     We exploit this by distributing the loop over windows across all available CPU cores using an \texttt{OpenMP} \texttt{parallel for} directive.
@@ -182,6 +180,7 @@
 %(vielleicht weglassen?):\\
 
     \subsection{Pitch Correction}
+    \label{sec:pitch-correction}
     In \ref{sec:pitch-detection} we detected some pitch $f_m$ for each window $m$, and dependent on the mode, we can extract the target pitch $f'_m$ from the midi file or by projecting onto a scale (see \ref{sec:scale}). Now it is left to shift up the pitch of the window by $\alpha_m := \frac{f'_m}{f_m}$.
 
     \subsubsection{The Algorithm}
@@ -201,9 +200,9 @@
     $$
     is computed and compared against the expected phase advance for that bin based on the window stride. This allows the true instantaneous frequency to be estimated:
     $$
-    \omega_m[k] = \frac{2 \pi k}{L} + \frac{\Delta \varphi_m[k] - 2 \pi k R / L}{R},
+    \omega_m[k] = \frac{2 \pi k}{W} + \frac{\Delta \varphi_m[k] - 2 \pi k R / W}{R},
     $$
-    which represents the actual frequency content rather than the discrete bin location. Here $R$ and $L $ are the window stride and length, respectively.
+    which represents the actual frequency content rather than the discrete bin location. Here $R$ and $W$ are the window stride and length, respectively.
 
     By scaling these instantaneous frequencies instead of naïvely moving bins, the algorithm preserves temporal continuity. The scaled magnitudes are then reassigned to the corresponding bins in the synthesis frame, the phases are updated accordingly, and the inverse DFT reconstructs the time-domain signal.
 
@@ -315,14 +314,13 @@
 
 
     \section{Conclusions}
+    In this project we developed \texttt{pytotune}, an open-source pitch correction library combining a C++ backend with a Python interface for convenient integration into Python-based audio workflows. The system implements a complete pipeline consisting of pitch detection with the YIN algorithm, target pitch determination from MIDI or musical scales, and pitch shifting using a Fourier-transform-based method.
 
-In this project we developed \texttt{pytotune}, an open-source pitch correction library combining a C++ backend with a Python interface for convenient integration into Python-based audio workflows. The system implements a complete pipeline consisting of pitch detection with the YIN algorithm, target pitch determination from MIDI or musical scales, and pitch shifting using a Fourier-transform-based method.
+    The main focus of this work was the algorithm engineering process. Early profiling revealed pitch detection as the dominant computational bottleneck. By applying parallelization with OpenMP, SIMD vectorization through the Highway library, and signal decimation, we significantly reduced the runtime of this stage. After these optimizations, the computational cost shifted to the pitch correction stage, illustrating how removing one bottleneck can expose the next limiting component.
 
-The main focus of this work was the algorithm engineering process. Early profiling revealed pitch detection as the dominant computational bottleneck. By applying parallelization with OpenMP, SIMD vectorization through the Highway library, and signal decimation, we significantly reduced the runtime of this stage. After these optimizations, the computational cost shifted to the pitch correction stage, illustrating how removing one bottleneck can expose the next limiting component.
+    Our experiments further demonstrate that parameters such as window size, pitch range, and decimation factor strongly influence runtime. Some optimizations that appeared promising in theory did not yield improvements in practice due to remaining sequential dependencies, highlighting the importance of empirical performance analysis.
 
-Our experiments further demonstrate that parameters such as window size, pitch range, and decimation factor strongly influence runtime. Some optimizations that appeared promising in theory did not yield improvements in practice due to remaining sequential dependencies, highlighting the importance of empirical performance analysis.
-
-Overall, the project highlighted the importance of systematic profiling when engineering algorithmic systems. While the theoretical complexity of the individual components was known, the practical bottlenecks only became clear through measurement. In particular, we observed how parallelization and vectorization can substantially reduce the cost of computationally intensive signal-processing tasks, while other seemingly promising optimizations may provide little or even negative benefit due to hidden sequential dependencies. These results illustrate that effective performance improvements require an iterative process of implementation, measurement, and refinement rather than relying solely on theoretical expectations.
+    Overall, from the project we learned the importance of systematic profiling when engineering algorithmic systems. While the theoretical complexity of the individual components was known, the practical bottlenecks only became clear through measurement. In particular, we saw how parallelization and vectorization can substantially reduce the cost of computationally intensive signal-processing tasks, while other seemingly promising optimizations may provide little or even negative benefit due to hidden sequential dependencies. 
 
 %%
 %% The next two lines define the bibliography style to be used, and
