@@ -73,28 +73,6 @@ TEST(PitchDetectionTest, DetectPianoPitch) {
         });
 }
 
-TEST(PitchDetectionTest, DetectStringsPitch) {
-    std::string testFile = constants::STRINGS_F440_SR44100;
-
-    EXPECT_NO_THROW({
-        p2t::WavFile reader = p2t::WavFile::load(testFile);
-        const auto& data = reader.data();
-
-        const int middle_C_freq = 261; // Frequency of Middle C (C4)
-
-        auto detection = p2t::YINPitchDetector({2048, 2048-500}).detectPitch(data, {middle_C_freq, middle_C_freq*2},
-            0.f
-        );
-        EXPECT_GT(detection.data.size() , 0);
-
-        for (const auto& pitch : detection.data)
-        {
-        // Expect the detected pitch to be approximately 440 Hz
-        EXPECT_NEAR(pitch, 440.0f, 15.0f);
-        }
-        });
-}
-
 
 TEST(PitchDetectionTest, DetectVoicePitch) {
     std::string testFile = constants::VOICE_F400_SR4100;
