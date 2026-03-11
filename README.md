@@ -178,7 +178,7 @@ export PYTHONPATH="$PWD/build:$PYTHONPATH"
 import pytotune
 
 scale = pytotune.Scale.fromName("C major")
-pytotune.tuneToScale("input.wav", scale, "output_scale.wav")
+pytotune.roundToScale("input.wav", scale, "output_scale.wav")
 ```
 
 ### Example: tune to MIDI
@@ -186,7 +186,7 @@ pytotune.tuneToScale("input.wav", scale, "output_scale.wav")
 ```python
 import pytotune
 
-pytotune.tuneToMidi("input.wav", "reference.mid", "output_midi.wav")
+pytotune.matchMidi("input.wav", "reference.mid", "output_midi.wav")
 ```
 
 ### Example: use an explicit pitch range
@@ -196,7 +196,7 @@ import pytotune
 
 pitch_range = pytotune.PitchRange(82.41, 1046.50)
 scale = pytotune.Scale.fromName("E minor")
-pytotune.tuneToScale("input.wav", scale, "output.wav", pitch_range)
+pytotune.roundToScale("input.wav", scale, "output.wav", pitch_range)
 ```
 
 ### Example: use a preset singer range
@@ -205,7 +205,7 @@ pytotune.tuneToScale("input.wav", scale, "output.wav", pitch_range)
 import pytotune
 
 pitch_range = pytotune.singerToPitchRange("tenor")
-pytotune.tuneToMidi("input.wav", "reference.mid", "output.wav", pitch_range)
+pytotune.matchMidi("input.wav", "reference.mid", "output.wav", pitch_range)
 ```
 
 ### Available pitch-range presets
