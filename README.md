@@ -85,20 +85,42 @@ This architecture keeps the full signal-processing chain explicit and easy to in
 
 ## Requirements
 
-### Core build requirements
+The most reliable local setup is to follow the CI toolchain choices.
 
-- **CMake 3.9+**
-- **A C++20 compiler**
-	- Clang
-	- GCC
-	- or MSVC
-- **OpenMP**
-- **Git**
+### Linux (CI equivalent)
 
-### For Python bindings
+- `build-essential`
+- `cmake`
+- `ninja-build`
+- `python3`
 
-- **Python 3**
-- Python development headers
+Install command:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y build-essential cmake ninja-build
+```
+
+### macOS (CI equivalent)
+
+- Homebrew
+- `cmake`
+- `ninja`
+- `gcc` (using `gcc-15` / `g++-15`)
+- `python3`
+
+Install command:
+
+```bash
+brew update
+brew install cmake ninja gcc
+```
+
+### Windows (CI equivalent)
+
+- Visual Studio C++ toolchain
+- `cmake`
+- `python`
 
 ### Dependencies fetched automatically by CMake
 
@@ -111,9 +133,10 @@ The project also builds against the bundled `highway/` directory.
 
 ### Platform notes
 
-- **Linux**: the smoothest setup path, and the benchmarking target is only enabled on Linux
-- **macOS**: you may need to install an OpenMP runtime such as Homebrew `libomp`
-- **Windows**: supported by the codebase and CMake configuration, but Linux/macOS were the main benchmarking platforms
+- **Linux/macOS**: builds use the Ninja generator
+- **macOS**: uses Homebrew GCC (`gcc-15` / `g++-15`) via `CC` and `CXX`
+- **Windows**: use the Visual Studio generator defaults with `-A x64`
+- **Benchmarking**: only enabled on Linux
 
 ## Setup and Build
 
@@ -124,27 +147,33 @@ git clone https://github.com/brokkoli71/PytoTune.git
 cd PytoTune
 ```
 
-### 2. Configure a release build
-
-On Linux and most default setups:
+### 2. Configure + build (Linux)
 
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+mkdir -p build
+cd build
+cmake -S .. -B . -G Ninja -DCMAKE_BUILD_TYPE=Release
+ninja -v
 ```
 
-On macOS with Homebrew GCC (for example GCC 15):
+### 3. Configure + build (macOS with GCC)
+
+Use Homebrew GCC 15:
 
 ```bash
-cmake -S . -B build \
-	-DCMAKE_BUILD_TYPE=Release \
-	-DCMAKE_C_COMPILER=gcc-15 \
-	-DCMAKE_CXX_COMPILER=g++-15
+export CC=gcc-15
+export CXX=g++-15
+mkdir -p build
+cd build
+cmake -S .. -B . -G Ninja -DCMAKE_BUILD_TYPE=Release
+ninja -v
 ```
 
-### 3. Build everything
+### 4. Configure + build (Windows)
 
-```bash
-cmake --build build -j
+```powershell
+cmake -S . -B build -A x64 -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release -- /m
 ```
 
 This builds:
@@ -171,7 +200,13 @@ cmake --build build -j
 
 ### macOS note
 
-If you build with Homebrew GCC on macOS, OpenMP support is typically available through that toolchain. If CMake still cannot find OpenMP, install an OpenMP runtime and re-run configuration. With Homebrew, this is typically done by installing `libomp`.
+If the compiler name does not exist (for example `gcc-15` is missing), check available versions:
+
+```bash
+ls -1 /opt/homebrew/bin/gcc-* /usr/local/bin/gcc-*
+```
+
+Then set `CC` and `CXX` to matching binaries before running CMake.
 
 ## Python Usage
 
@@ -290,11 +325,34 @@ Tune a file to `E minor` using a custom pitch-detection range:
 
 ## Testing
 
-Build and run the C++ test suite with:
+### C++ tests (Linux/macOS)
 
 ```bash
-cmake --build build --target pytotune_tests -j
-ctest --test-dir build --output-on-failure
+cd build
+ctest --output-on-failure
+```
+
+### C++ tests (Windows)
+
+```powershell
+cd build
+ctest -C Release --output-on-failure
+```
+
+### Python bindings test (Linux/macOS)
+
+Run from the repository root:
+
+```bash
+export PYTHONPATH=$PYTHONPATH:$(pwd)/build
+python test_bindings.py
+```
+
+### Python bindings test (Windows)
+
+```powershell
+$env:PYTHONPATH = "$env:PYTHONPATH;$(Get-Location)\build\Release"
+python test_bindings.py
 ```
 
 The test data used by the suite lives in `tests/data/`.
