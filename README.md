@@ -391,7 +391,7 @@ Generated CSV outputs are written into the `benchmarks/` directory.
 
 ## Further Reading
 
-- The full project write-up is available in `paper/paper.tex`
+- The full project write-up is available in `paper/paper.tex`. The PDF builds are available as workflow artifacts.
 - Test assets and naming conventions are documented in `tests/data/README.md`
 
 ## License
