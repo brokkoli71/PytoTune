@@ -126,8 +126,19 @@ cd PytoTune
 
 ### 2. Configure a release build
 
+On Linux and most default setups:
+
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+```
+
+On macOS with Homebrew GCC (for example GCC 15):
+
+```bash
+cmake -S . -B build \
+	-DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_C_COMPILER=gcc-15 \
+	-DCMAKE_CXX_COMPILER=g++-15
 ```
 
 ### 3. Build everything
@@ -160,7 +171,7 @@ cmake --build build -j
 
 ### macOS note
 
-If CMake cannot find OpenMP on macOS, install an OpenMP runtime first and then re-run configuration. With Homebrew, this is typically done by installing `libomp`.
+If you build with Homebrew GCC on macOS, OpenMP support is typically available through that toolchain. If CMake still cannot find OpenMP, install an OpenMP runtime and re-run configuration. With Homebrew, this is typically done by installing `libomp`.
 
 ## Python Usage
 
