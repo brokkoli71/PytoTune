@@ -1,7 +1,3 @@
-//
-// Created by Moritz Seppelt on 12.11.25.
-//
-
 #ifndef PYTOTUNE_MODE_H
 #define PYTOTUNE_MODE_H
 #include <vector>

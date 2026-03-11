@@ -9,10 +9,21 @@
 #define DEFAULT_DECIMATION_FACTOR 4
 
 namespace p2t {
+    /**
+     * Frequency interval used to constrain pitch detection.
+     */
     struct PitchRange {
+        /// Lower bound in Hz.
         float min;
+        /// Upper bound in Hz.
         float max;
 
+        /**
+         * Construct a validated pitch range.
+         * @param minValue Lower bound in Hz (must be > 0).
+         * @param maxValue Upper bound in Hz (must be greater than minValue).
+         * @throws std::invalid_argument If bounds are invalid.
+         */
         constexpr PitchRange(const float minValue, const float maxValue)
             : min(minValue), max(maxValue) {
             if (!(minValue > 0.0f && minValue < maxValue)) {
@@ -21,6 +32,9 @@ namespace p2t {
         }
     };
 
+    /**
+     * Common predefined frequency ranges for pitch detection.
+     */
     namespace VoiceRanges {
         // Basic categories
         constexpr PitchRange HEARABLE = {20.f, 20000.f};
@@ -43,19 +57,19 @@ namespace p2t {
     class YINPitchDetector {
     public:
         /**
-         * Detects the pitch of the given audio buffer using the YIN algorithm with preset parameters.
-         * @param audioBuffer The audio buffer containing the WavData.
-         * @param pitchRange Minimum and maximum frequency to consider (in Hz).
-         * @param threshold Threshold for pitch detection confidence (between 0 and 1).
-         * @param decimationFactor Factor by which to downsample the audio for faster processing (default is 2).
-         * @return A PitchDetection struct containing the detected pitch information.
+         * Detect pitch per analysis window using the YIN algorithm.
+         * @param audioBuffer Input audio samples.
+         * @param pitchRange Minimum and maximum frequency to consider (Hz).
+         * @param threshold Detection confidence threshold (typically between 0 and 1).
+         * @param decimationFactor Downsampling factor used during preprocessing (default is 4).
+         * @return Window-aligned detected pitch values in Hz.
          */
         [[nodiscard]] WindowedData<float> detectPitch(const WavData &audioBuffer, PitchRange pitchRange,
                                                       float threshold = DEFAULT_THRESHOLD, int decimationFactor = DEFAULT_DECIMATION_FACTOR) const;
 
         /**
-         * Constructor of the PitchDetector class.
-         * @param windowing The windowing of all future pitch detection runs
+         * Construct a detector with fixed analysis windowing.
+         * @param windowing Window size and hop size used for all detection runs.
          */
         explicit YINPitchDetector(Windowing windowing);
 

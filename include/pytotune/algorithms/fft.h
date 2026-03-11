@@ -1,7 +1,3 @@
-//
-// Created by Moritz Seppelt on 19.11.25.
-//
-
 #ifndef PYTOTUNE_FFT_H
 #define PYTOTUNE_FFT_H
 
@@ -9,7 +5,7 @@
 
 namespace p2t {
     /**
-     * @brief Performs an in-place FFT or inverse FFT on a complex buffer.
+     * Performs an in-place FFT or inverse FFT on a complex buffer.
      *
      * The fftBuffer is a vector of floats where real and imaginary parts are
      * interleaved: [Re0, Im0, Re1, Im1, ...].
