@@ -1,11 +1,14 @@
 # PytoTune
 
-PytoTune is an open-source pitch-correction library with a C++ backend, Python bindings, and a command-line interface. It was built as an Algorithm Engineering project and focuses on making the full Auto-Tune-style pipeline transparent, reproducible, and fast.
+PytoTune is an open-source pitch-correction library with a C++ backend, Python bindings, and a command-line interface.
+It was built as an Algorithm Engineering project and focuses on making the full Auto-Tune-style pipeline transparent,
+reproducible, and fast.
 
 The project supports two correction modes:
 
 - **MIDI-guided correction**: match an input WAV file to the notes of a MIDI file
-- **Scale-guided correction**: quantize detected pitches to a musical scale such as `C major`, `E minor`, or more exotic tunings
+- **Scale-guided correction**: quantize detected pitches to a musical scale such as `C major`, `E minor`, or more exotic
+  tunings
 
 Under the hood, PytoTune combines:
 
@@ -37,20 +40,22 @@ Under the hood, PytoTune combines:
 - Python extension module built with `pybind11`
 - Standalone CLI executable for file-based workflows
 - Two pitch-correction modes:
-	- WAV + MIDI → corrected WAV
-	- WAV + musical scale → corrected WAV
+    - WAV + MIDI → corrected WAV
+    - WAV + musical scale → corrected WAV
 - Built-in scale parsing, including common western modes and non-standard scales
 - Configurable pitch-detection ranges, including presets for common vocal ranges
 - Optimized YIN detector with:
-	- OpenMP parallelization
-	- SIMD vectorization with Highway
-	- signal decimation before detection
+    - OpenMP parallelization
+    - SIMD vectorization with Highway
+    - signal decimation before detection
 - Unit tests with GoogleTest
 - Linux benchmarking target and helper scripts
 
 ## Project Status
 
-PytoTune is currently a **research/project codebase** rather than a polished end-user package. The core library, CLI, tests, and Python bindings are present in this repository. However, the repository does **not** currently ship PyPI packaging metadata such as a `pyproject.toml`.
+PytoTune is currently a **research/project codebase** rather than a polished end-user package. The core library, CLI,
+tests, and Python bindings are present in this repository. However, the repository does **not** currently ship PyPI
+packaging metadata such as a `pyproject.toml`.
 
 That means local usage is currently centered around **building with CMake**.
 
@@ -62,8 +67,8 @@ The processing pipeline is:
 2. **Split audio into overlapping windows** (default: window size `4096`, stride `1024`)
 3. **Detect pitch per window** using the YIN algorithm
 4. **Compute target pitches** either from:
-	 - a MIDI note sequence, or
-	 - the nearest note in a chosen musical scale
+    - a MIDI note sequence, or
+    - the nearest note in a chosen musical scale
 5. **Apply pitch shifting** with a Fourier-transform-based algorithm
 6. **Overlap-add corrected windows** into the final output WAV file
 
@@ -87,7 +92,7 @@ This architecture keeps the full signal-processing chain explicit and easy to in
 
 The most reliable local setup is to follow the CI toolchain choices.
 
-### Linux (CI equivalent)
+### Linux
 
 - `build-essential`
 - `cmake`
@@ -101,7 +106,7 @@ sudo apt-get update
 sudo apt-get install -y build-essential cmake ninja-build
 ```
 
-### macOS (CI equivalent)
+### macOS
 
 - Homebrew
 - `cmake`
@@ -116,7 +121,7 @@ brew update
 brew install cmake ninja gcc
 ```
 
-### Windows (CI equivalent)
+### Windows
 
 - Visual Studio C++ toolchain
 - `cmake`
@@ -387,7 +392,8 @@ Generated CSV outputs are written into the `benchmarks/` directory.
 - The current workflow is centered around **WAV input/output** and **MIDI reference files**
 - The pitch detector is best suited to **monophonic or voice-like material**
 - The repository currently provides **CMake-based local builds**, not a ready-to-publish PyPI package
-- Audio quality was not the sole optimization target; the main focus of the project was algorithm engineering and performance analysis
+- Audio quality was not the sole optimization target; the main focus of the project was algorithm engineering and
+  performance analysis
 
 ## Further Reading
 
